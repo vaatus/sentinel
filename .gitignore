@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.next/
+out/
+*.log
+.env
+.env.local
+.sentinel/
+*.sqlite
+*.sqlite-journal
+*.db
+.DS_Store
+coverage/
+.turbo/

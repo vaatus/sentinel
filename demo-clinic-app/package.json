@@ -1,0 +1,11 @@
+{
+  "name": "demo-clinic-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Intentionally vulnerable healthcare demo for Sentinel scans. DO NOT USE IN PRODUCTION.",
+  "license": "MIT",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  }
+}

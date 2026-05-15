@@ -1,0 +1,6 @@
+#!/usr/bin/env node
+import("../packages/cli/dist/index.js").catch((e) => {
+  console.error("Sentinel CLI not built. Run `npm run build` from the repo root.");
+  console.error(e);
+  process.exit(1);
+});
