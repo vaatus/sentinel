@@ -11,6 +11,12 @@ import type {
 import { extractJson, extractSessionId } from "./outputParser.js";
 import { getControls } from "../frameworks/index.js";
 import { runMockAudit, runMockTrace, runMockRemediation } from "./mockBob.js";
+import {
+  claudeAvailable,
+  callClaudeAudit,
+  callClaudeTrace,
+  callClaudeRemediation,
+} from "./claudeRunner.js";
 
 const BOB_BIN = process.env.SENTINEL_BOB_BIN ?? "bob";
 const BOB_LIVE = process.env.BOB_LIVE === "1";
@@ -93,6 +99,11 @@ export async function runAudit(args: {
   files: string[];
   prompt: string;
 }): Promise<BobRunResult<BobAuditResponse>> {
+  if (claudeAvailable()) {
+    const { json, bobSessionId } = await callClaudeAudit(args.framework, args.cwd, args.files);
+    return { json, rawStdout: JSON.stringify(json, null, 2), bobSessionId, source: "live" };
+  }
+
   const mode = `${args.framework}-auditor` as BobMode;
   if (bobAvailable()) {
     return runLiveBob<BobAuditResponse>({
@@ -118,6 +129,11 @@ export async function runPhiTrace(args: {
   files: string[];
   prompt: string;
 }): Promise<BobRunResult<PhiTraceResponse>> {
+  if (claudeAvailable()) {
+    const { json, bobSessionId } = await callClaudeTrace(args.cwd, args.files);
+    return { json, rawStdout: JSON.stringify(json, null, 2), bobSessionId, source: "live" };
+  }
+
   if (bobAvailable()) {
     return runLiveBob<PhiTraceResponse>({
       mode: "phi-tracer",
@@ -149,6 +165,11 @@ export async function runRemediation(args: {
   };
   prompt: string;
 }): Promise<BobRunResult<RemediationResponse>> {
+  if (claudeAvailable()) {
+    const { json, bobSessionId } = await callClaudeRemediation(args.cwd, args.finding);
+    return { json, rawStdout: JSON.stringify(json, null, 2), bobSessionId, source: "live" };
+  }
+
   if (bobAvailable()) {
     return runLiveBob<RemediationResponse>({
       mode: "remediation-engineer",
