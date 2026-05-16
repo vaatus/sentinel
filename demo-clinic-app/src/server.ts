@@ -14,4 +14,5 @@ app.use("/api/billing", billingRouter);
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
 const PORT = process.env.PORT ?? 4100;
-app.listen(PORT, () => logger.info(`demo-clinic-app listening on :${PORT}`));
+const HOST = "0.0.0.0"; // Binds to all interfaces without IP restrictions
+app.listen(PORT, HOST, () => logger.info(`demo-clinic-app listening on ${HOST}:${PORT}`));

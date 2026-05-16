@@ -76,11 +76,30 @@ export async function runRemediate(opts: RemediateOptions): Promise<void> {
         diff: rem.json.diff,
         blastRadius: rem.json.blast_radius,
         rationale: rem.json.rationale,
+        status: pr.status,
       });
 
-      results.push({ finding_id: f.id, branch: pr.branch, files_changed: pr.filesChanged });
+      results.push({
+        finding_id: f.id,
+        branch: pr.branch,
+        files_changed: pr.filesChanged,
+        status: pr.status,
+      });
+
+      // Format status message with appropriate color
+      let statusMsg = "";
+      if (pr.status === "applied") {
+        statusMsg = chalk.green("PR created");
+      } else if (pr.status === "applied:working-tree-only") {
+        statusMsg = chalk.green("Applied to working tree");
+      } else if (pr.status === "skipped:dirty-tree") {
+        statusMsg = chalk.yellow("⚠ Skipped (dirty tree) - patch saved");
+      } else if (pr.status === "skipped:not-a-repo") {
+        statusMsg = chalk.yellow("⚠ Skipped (not a repo) - patch saved");
+      }
+
       spin?.succeed(
-        `${chalk.green("PR")}  ${pr.branch}  ${chalk.dim(`(blast radius: ${rem.json.blast_radius.length} files)`)}`,
+        `${statusMsg}  ${pr.branch}  ${chalk.dim(`(blast radius: ${rem.json.blast_radius.length} files)`)}`,
       );
     } catch (e: any) {
       spin?.fail(`failed: ${e.message}`);

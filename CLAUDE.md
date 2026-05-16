@@ -81,7 +81,7 @@ Custom Tailwind tokens: `sentinel-bg`, `sentinel-panel`, `sentinel-border`, `sen
 
 ### Demo target (`demo-clinic-app/`)
 
-A deliberately broken Express app with 8 seeded HIPAA violations across `src/routes/`, `src/auth/`, `src/db/`. Running `sentinel scan` against it always produces a meaningful report regardless of mock/live mode.
+A deliberately broken Express app with 9 seeded HIPAA violations across `src/routes/`, `src/auth/`, `src/db/`, `src/server.ts`. Running `sentinel scan` against it always produces a meaningful report regardless of mock/live mode.
 
 ### Bob / Claude custom modes (`.bob/`)
 

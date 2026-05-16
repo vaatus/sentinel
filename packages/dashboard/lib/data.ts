@@ -70,6 +70,7 @@ export function loadRemediations(): Array<{
   diff: string;
   blast_radius: any[];
   rationale: string;
+  status?: string;
   created_at: string;
 }> {
   const path = join(getTargetPath(), ".sentinel", "remediations.json");

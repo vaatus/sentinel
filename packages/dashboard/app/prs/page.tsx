@@ -35,6 +35,13 @@ export default function PrsPage() {
                           {finding.control}
                         </span>
                       )}
+                      {pr.status && pr.status !== "applied" && (
+                        <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                          {pr.status === "applied:working-tree-only" && "Working tree only"}
+                          {pr.status === "skipped:dirty-tree" && "⚠ Needs manual apply (dirty tree)"}
+                          {pr.status === "skipped:not-a-repo" && "⚠ Needs manual apply (not a repo)"}
+                        </span>
+                      )}
                     </div>
                     <div className="text-xs text-slate-400 font-mono mt-1 flex items-center gap-2">
                       <GitBranch className="w-3 h-3" />

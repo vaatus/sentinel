@@ -188,6 +188,21 @@ export const HIPAA_CONTROLS: Control[] = [
     bob_prompt_template:
       "Identify PHI-handling modules with no data classification annotation. §164.316.",
   },
+  {
+    id: "164.310(a)(1)",
+    title: "Facility Access Controls",
+    severity_default: "high",
+    detection_strategy: "bob_semantic",
+    regex_prefilters: [
+      /app\.listen\(/i,
+      /server\.listen\(/i,
+      /0\.0\.0\.0/,
+      /host\s*:/i,
+    ],
+    negative_filters: [/rateLimit|ipWhitelist|allowedIPs/],
+    bob_prompt_template:
+      "Identify network listeners binding to 0.0.0.0 or all interfaces without explicit IP allow-lists, or HTTP servers lacking rate-limit/IP-restriction middleware, when the same module also handles PHI. §164.310(a)(1) requires facility access controls to limit physical and network access to systems containing ePHI.",
+  },
 ];
 
 export const HIPAA_CONTROL_BY_ID: Record<string, Control> = Object.fromEntries(

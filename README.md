@@ -4,7 +4,7 @@
 
 Sentinel is a developer-facing compliance copilot that scans source code for **HIPAA**, **SOC 2**, and **PCI-DSS** violations, traces Protected Health Information (PHI) data flows, and generates minimal, reviewable remediation patches.
 
-- **Development partner:** IBM Bob IDE. Bob handled cross-file reasoning during the build — designing the 15 HIPAA controls, refactoring the orchestrator, writing the PHI-trace prompts, and reviewing the dashboard pages. Each task is exported as a markdown transcript + consumption-summary screenshot in `bob_sessions/`.
+- **Development partner:** IBM Bob IDE. Bob handled cross-file reasoning during the build — designing the 16 HIPAA controls, refactoring the orchestrator, writing the PHI-trace prompts, and reviewing the dashboard pages. Each task is exported as a markdown transcript + consumption-summary screenshot in `bob_sessions/`.
 - **Runtime engine:** Claude `claude-opus-4-7` (adaptive thinking, prompt caching). Sentinel's CLI ships the orchestrator and prompts; the model is swappable — a local Bob Shell binary works as a drop-in via `BOB_LIVE=1 SENTINEL_BOB_BIN=bob`.
 - **Falls back to deterministic mock** when no API key or Bob Shell is available, so the demo runs anywhere.
 
@@ -146,4 +146,34 @@ score = 100 − (critical × 8 + high × 4 + medium × 2 + low × 1)  [clamped 0
 | Variable | Description |
 |---|---|
 | `ANTHROPIC_API_KEY` | Enables live Claude calls; omit for mock mode |
+
+---
+
+## Control reference
+
+Sentinel detects violations across **26 compliance controls** spanning HIPAA Security Rule (16 controls), SOC 2 TSC (6 controls), and PCI-DSS v4.0 (4 controls).
+
+Each control has detailed reference documentation explaining:
+- What the regulatory requirement means in plain English
+- How Sentinel's detection strategy works (regex patterns + semantic analysis)
+- Example code violations and remediations
+- Related controls that often co-occur
+
+**📚 [Browse the complete control reference →](./docs/controls/)**
+
+### Quick links by framework
+
+- **[HIPAA Security Rule](./docs/controls/README.md#hipaa-security-rule)** — 16 controls covering access control, encryption, audit logging, PHI integrity, and workforce security
+- **[SOC 2 Trust Services Criteria](./docs/controls/README.md#soc-2-trust-services-criteria)** — 6 controls for logical access, monitoring, and change management
+- **[PCI-DSS v4.0](./docs/controls/README.md#pci-dss-v40)** — 4 controls for cardholder data protection and secure transmission
+
+### Example controls
+
+| Control ID | Title | Severity | What it detects |
+|---|---|---|---|
+| [164.312(a)(1)](./docs/controls/hipaa/164-312-a-1.md) | Access Control | High | PHI endpoints without authentication |
+| [164.312(a)(2)(iv)](./docs/controls/hipaa/164-312-a-2-iv.md) | Encryption at Rest | Critical | Unencrypted PHI in database schemas |
+| [CC6.6](./docs/controls/soc2/cc6-6.md) | Encryption in Transit | Critical | HTTP (non-TLS) external calls |
+| [3.3.1](./docs/controls/pci/3-3-1.md) | CVV Storage Prohibited | Critical | Any storage of CVV/CVC codes |
+
 | `BOB_LIVE=1` + `SENTINEL_BOB_BIN` | Optional: route runtime LLM calls through a local Bob Shell binary instead of the Anthropic API |

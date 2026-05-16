@@ -146,6 +146,10 @@ const EXPLANATIONS: Record<string, (m: Match) => { explanation: string; hint: st
     explanation: `${m.file} touches PHI but lacks a data-classification annotation (e.g., @phi, @pii).`,
     hint: "Add a `@phi` JSDoc annotation to PHI-handling modules.",
   }),
+  "164.310(a)(1)": (m) => ({
+    explanation: `Network listener at ${m.file}:${m.line} binds to 0.0.0.0 or all interfaces without IP allow-list or rate-limiting middleware. When the same module handles PHI, this creates unrestricted network access to ePHI systems.`,
+    hint: "Add rate-limiting middleware (e.g., express-rate-limit) and/or IP whitelist middleware before PHI routes, or bind to a specific internal interface instead of 0.0.0.0.",
+  }),
 };
 
 const SOC2_EXPLAIN: Record<string, (m: Match) => { explanation: string; hint: string }> = {
@@ -687,6 +691,33 @@ const REMEDIATION_TEMPLATES: Record<string, RemediationTemplate> = {
       ],
       test_recommendations: ["Lint rule should require @data-classification on every PHI module."],
       rationale: "Adds the required HIPAA data-classification annotation. §164.316.",
+    };
+  },
+  "164.310(a)(1)": (cwd, f) => {
+    const lines = readLines(cwd, f.file);
+    if (!lines) return null;
+    const idx = lines.findIndex((l, i) => i + 1 >= f.line_start - 1 && /app\.listen\(/.test(l));
+    if (idx < 0) return null;
+    const orig = lines[idx];
+    // Insert rate-limit middleware before the listen call
+    const rateLimitImport = "import rateLimit from 'express-rate-limit';";
+    const rateLimitConfig = `\nconst limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });\napp.use(limiter);\n`;
+    const fixed = rateLimitConfig + orig;
+    return {
+      edits: [
+        { file: f.file, search: orig, replace: fixed },
+      ],
+      diff: diffLines(f.file, orig.trimEnd(), `[rate-limit middleware]\n${orig.trimEnd()}`, idx + 1),
+      blast_radius: [
+        { file: f.file, impact: "Adds rate-limiting middleware to all routes; excessive request rates now return 429." },
+        { file: "package.json", impact: "Requires express-rate-limit dependency." },
+      ],
+      test_recommendations: [
+        "Add a test asserting that >100 requests in 15 minutes returns 429.",
+        "Consider adding IP whitelist middleware for internal services.",
+      ],
+      rationale:
+        "Adds rate-limiting to prevent unrestricted network access to PHI endpoints. For production, also bind to specific interface or add IP whitelist. §164.310(a)(1).",
     };
   },
 };

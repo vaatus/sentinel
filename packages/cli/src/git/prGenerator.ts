@@ -3,10 +3,17 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import type { Finding, RemediationResponse, RemediationEdit } from "../types.js";
 
+export type RemediationStatus =
+  | "applied"
+  | "skipped:dirty-tree"
+  | "skipped:not-a-repo"
+  | "applied:working-tree-only";
+
 export interface AppliedPatch {
   branch: string;
   filesChanged: string[];
   patchPath: string;
+  status: RemediationStatus;
 }
 
 export function applyEdits(repoRoot: string, edits: RemediationEdit[]): string[] {
@@ -46,22 +53,29 @@ export async function openLocalPr(args: {
   // Apply-mode: write fixes directly to the working tree, no branch dance.
   if (args.applyToWorkingTree) {
     const filesChanged = applyEdits(args.repoRoot, args.remediation.edits);
-    return { branch, filesChanged, patchPath };
+    return { branch, filesChanged, patchPath, status: "applied:working-tree-only" };
   }
 
   // PR-mode: create a sentinel/fix-* branch with just this fix; restore base branch.
   const git: SimpleGit = simpleGit(args.repoRoot);
   const isRepo = await git.checkIsRepo().catch(() => false);
-  let filesChanged: string[] = [];
-  if (!isRepo) return { branch, filesChanged, patchPath };
+  
+  if (!isRepo) {
+    // Not a git repo - patch written but can't create branch
+    return { branch, filesChanged: [], patchPath, status: "skipped:not-a-repo" };
+  }
 
   try {
     const status = await git.status();
     if (status.files.length > 0) {
       // Working tree dirty — skip branch creation to avoid carrying noise into the fix branch.
-      return { branch, filesChanged, patchPath };
+      // Patch is already written above, so developer can apply manually.
+      return { branch, filesChanged: [], patchPath, status: "skipped:dirty-tree" };
     }
+    
     const baseBranch = status.current ?? "main";
+    let filesChanged: string[] = [];
+    
     try {
       await git.checkoutLocalBranch(branch);
     } catch {
@@ -79,8 +93,10 @@ export async function openLocalPr(args: {
       await git.reset(["--hard", "HEAD"]);
     } catch {}
     await git.checkout(baseBranch);
+    
+    return { branch, filesChanged, patchPath, status: "applied" };
   } catch {
-    // Best-effort.
+    // Best-effort - if we fail, patch is still written
+    return { branch, filesChanged: [], patchPath, status: "skipped:not-a-repo" };
   }
-  return { branch, filesChanged, patchPath };
 }
