@@ -223,15 +223,28 @@ export class FindingsStore {
 
   exportToJson() {
     const exportPath = join(this.rootDir, ".sentinel", "findings.json");
+    const remediationsPath = join(this.rootDir, ".sentinel", "remediations.json");
+    mkdirSync(dirname(exportPath), { recursive: true });
     const scanRun = this.latestScanRun();
     if (!scanRun) {
       writeFileSync(exportPath, JSON.stringify({ scanRun: null, findings: [], flows: [] }, null, 2));
+      writeFileSync(remediationsPath, JSON.stringify([], null, 2));
       return exportPath;
     }
     const findings = this.findingsForRun(scanRun.id);
     const flows = this.flowsForRun(scanRun.id);
-    mkdirSync(dirname(exportPath), { recursive: true });
     writeFileSync(exportPath, JSON.stringify({ scanRun, findings, flows }, null, 2));
+
+    const remediations = (this.remediationsForRun(scanRun.id) as any[]).map((r) => ({
+      id: r.id,
+      finding_id: r.finding_id,
+      branch: r.branch,
+      diff: r.diff,
+      blast_radius: JSON.parse(r.blast_radius_json ?? "[]"),
+      rationale: r.rationale,
+      created_at: r.created_at,
+    }));
+    writeFileSync(remediationsPath, JSON.stringify(remediations, null, 2));
     return exportPath;
   }
 
