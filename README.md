@@ -113,7 +113,7 @@ These can be used directly in Claude Code (the CLI) as persistent, version-contr
 ## Compliance score
 
 ```
-score = 100 − (critical × 25 + high × 10 + medium × 4 + low × 1)  [clamped 0–100]
+score = 100 − (critical × 8 + high × 4 + medium × 2 + low × 1)  [clamped 0–100]
 ```
 
 | Score | Verdict |
