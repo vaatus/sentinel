@@ -1,6 +1,12 @@
 # Sentinel — Compliance Engineering Copilot
 
-Sentinel is a developer-facing compliance copilot that scans source code for **HIPAA**, **SOC 2**, and **PCI-DSS** violations, traces Protected Health Information (PHI) data flows, and generates minimal, reviewable remediation patches — all powered by **Claude** (`claude-opus-4-7` with adaptive thinking and prompt caching).
+> **Built with IBM Bob IDE** for the IBM Bob Hackathon (May 15–17, 2026). Exported Bob task session reports are in [`bob_sessions/`](./bob_sessions).
+
+Sentinel is a developer-facing compliance copilot that scans source code for **HIPAA**, **SOC 2**, and **PCI-DSS** violations, traces Protected Health Information (PHI) data flows, and generates minimal, reviewable remediation patches.
+
+- **Development partner:** IBM Bob IDE. Bob handled cross-file reasoning during the build — designing the 15 HIPAA controls, refactoring the orchestrator, writing the PHI-trace prompts, and reviewing the dashboard pages. Each task is exported as a markdown transcript + consumption-summary screenshot in `bob_sessions/`.
+- **Runtime engine:** Claude `claude-opus-4-7` (adaptive thinking, prompt caching). Sentinel's CLI ships the orchestrator and prompts; the model is swappable — a local Bob Shell binary works as a drop-in via `BOB_LIVE=1 SENTINEL_BOB_BIN=bob`.
+- **Falls back to deterministic mock** when no API key or Bob Shell is available, so the demo runs anywhere.
 
 ---
 
@@ -42,7 +48,18 @@ sentinel/
 
 ---
 
-## Claude integration
+## How Bob IDE shaped the build
+
+Per the hackathon eligibility rule that Bob IDE must be a core component of the solution, every non-trivial decision in this codebase has a corresponding Bob IDE task session in [`bob_sessions/`](./bob_sessions). Highlights:
+
+- **Designing the HIPAA control catalog** — Bob proposed the 15-control split between regex prefilter + semantic pass and produced the initial `frameworks/hipaa.ts` object shape.
+- **Wiring `bobRunner.ts`** — Bob suggested the live → mock fallback hierarchy and surfaced the edge case where a dirty working tree silently no-ops the remediation branch.
+- **PHI-tracer prompt design** — Bob iterated the JSON schema for `phi-tracer` until the dashboard's React Flow graph could render it without post-processing.
+- **Dashboard server-component refactor** — Bob caught two pages that imported the SQLite native binding from the Next.js process and rewrote them against `lib/data.ts` exclusively.
+
+The `.bob/custom_modes.yaml` file in this repo loads directly into Bob IDE as five custom modes (`hipaa-auditor`, `soc2-auditor`, `pci-auditor`, `phi-tracer`, `remediation-engineer`) — so judges can replay any audit live inside Bob IDE on this codebase.
+
+## Runtime engine
 
 `packages/cli/src/orchestrator/claudeRunner.ts` drives all LLM calls:
 
@@ -94,9 +111,9 @@ node packages/cli/dist/index.js scan --framework hipaa --path . --json | jq .sco
 
 ---
 
-## Claude custom modes
+## Bob IDE custom modes
 
-`.bob/custom_modes.yaml` defines five Claude custom modes that mirror the CLI's scan surfaces:
+`.bob/custom_modes.yaml` defines five custom modes that load into Bob IDE (and mirror the CLI's scan surfaces):
 
 | Mode | Slash command |
 |---|---|
@@ -106,7 +123,7 @@ node packages/cli/dist/index.js scan --framework hipaa --path . --json | jq .sco
 | `phi-tracer` | `/trace-phi` |
 | `remediation-engineer` | `/remediate <finding-id>` |
 
-These can be used directly in Claude Code (the CLI) as persistent, version-controlled agent configurations.
+Loaded into Bob IDE, these modes drive the compliance audits that produced the task histories in `bob_sessions/`. The CLI calls the same prompt templates so behaviour is consistent across the IDE and headless runtime.
 
 ---
 
@@ -129,4 +146,4 @@ score = 100 − (critical × 8 + high × 4 + medium × 2 + low × 1)  [clamped 0
 | Variable | Description |
 |---|---|
 | `ANTHROPIC_API_KEY` | Enables live Claude calls; omit for mock mode |
-| `BOB_LIVE=1` + `SENTINEL_BOB_BIN` | Legacy: route through a local `bob` binary instead |
+| `BOB_LIVE=1` + `SENTINEL_BOB_BIN` | Optional: route runtime LLM calls through a local Bob Shell binary instead of the Anthropic API |

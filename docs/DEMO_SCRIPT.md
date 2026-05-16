@@ -16,7 +16,7 @@
   sentinel scan --framework hipaa --path ./demo-clinic-app
   ```
 - **Show:** the spinner sequence ("Discovering files…", "Invoking IBM Bob (hipaa-auditor mode)…", "Tracing PHI data flow…"), then the summary box with **score 30 / 100**, 8 critical findings, 5 PHI flows.
-- **VO:** "Sentinel orchestrates five custom Bob modes — `hipaa-auditor`, `phi-tracer`, `remediation-engineer`, and two more — across the entire repository. Bob's whole-repo context is what makes this work."
+- **VO:** "Sentinel was built with IBM Bob IDE — five custom modes for HIPAA, SOC 2, PCI, PHI tracing, and remediation. The same modes that shipped this codebase audit any other codebase you point them at."
 
 ### 0:25 – 0:45 · Dashboard
 
@@ -33,7 +33,7 @@
 ### 1:05 – 1:30 · Auto-remediate
 
 - **On-screen:** Back to overview. Click **Auto-remediate with Bob**. The PR list populates as branches are opened. Open one PR — diff, blast radius (which files affected), Bob's rationale.
-- **VO:** "Bob now opens pull requests. Each fix ships with a cross-file blast-radius analysis — every file the change touches, every test affected, every downstream service."
+- **VO:** "The same `remediation-engineer` mode that helped build Sentinel now opens pull requests on the target repo. Each fix ships with a cross-file blast-radius analysis — every file the change touches, every test affected, every downstream service."
 
 ### 1:30 – 1:45 · Re-scan
 
@@ -45,8 +45,8 @@
 - **On-screen:** Three-line card:
   - *What used to take 6 months and $50K of external auditors*
   - *Now runs in your CI on every PR*
-  - *Powered by the only AI that understands your whole codebase*
-- **VO:** "Built with IBM Bob. Sentinel."
+  - *Built with IBM Bob IDE — task exports in `bob_sessions/`*
+- **VO:** "Built with IBM Bob IDE. Sentinel."
 - **End frame:** logo + `github.com/vaatus/sentinel`
 
 ---
@@ -57,3 +57,4 @@
 - Pre-warm the demo: `npm run demo` once before recording to populate `.sentinel/findings.json`.
 - For the live segment, run with `ANTHROPIC_API_KEY` set so the "live" label appears in the CLI output and the `bob_session_id` on the dashboard is a real ID.
 - If timing is tight, the re-scan shot can be trimmed to 5 s — show the before/after numbers side by side.
+- **Optional Bob IDE shot (5–10 s, between 0:40 and 0:55):** flip to Bob IDE with `.bob/custom_modes.yaml` open and the `hipaa-auditor` mode highlighted — reinforces that the modes shipped in the repo are the same ones loaded in Bob IDE.

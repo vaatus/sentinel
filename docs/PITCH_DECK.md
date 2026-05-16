@@ -28,11 +28,13 @@ Render to PDF with any markdown-to-slides tool (Marp, Slidev, Pandoc + reveal.js
 
 ## Slide 3 — The Insight
 
-> Bob's **whole-repo context** is the unfair advantage.
+> Compliance is a **whole-repo reasoning** problem.
 >
-> No regex tool, no file-by-file AI, can reason about cross-file PHI flow.
+> A single line of logging is only a violation when seen through the file three calls upstream that handed it PHI.
 
 *Visual:* one PHI flow on screen — `/api/patients` → `logger.info()` → `app.log`, with a red **§164.312(b)** badge on the sink.
+
+> *Built with Bob IDE — every control catalog, every prompt schema, every dashboard page has an exported task history in `bob_sessions/`.*
 
 ---
 
@@ -46,9 +48,9 @@ Render to PDF with any markdown-to-slides tool (Marp, Slidev, Pandoc + reveal.js
 
 ## Slide 5 — Why this matters to IBM
 
-> Compliance is the killer enterprise use case Bob was built for.
+> Compliance is the killer enterprise use case Bob IDE was built for.
 >
-> Sentinel makes it **self-serve**.
+> Sentinel makes it **self-serve** — load `.bob/custom_modes.yaml` and any team can audit their own codebase.
 
 *Visual:* a code review screen with a Sentinel comment ("⚠ This PR introduces a §164.312(e)(1) transmission-security violation") inline on a GitHub-style diff.
 
@@ -57,6 +59,7 @@ Render to PDF with any markdown-to-slides tool (Marp, Slidev, Pandoc + reveal.js
 ## Speaker notes
 
 - Open by stating the price tag in slide 2 — that's the hook.
-- On slide 3, point at the cross-file edge and say: "A regex sees the log line. A file-by-file AI sees the log line. Only Bob sees that the value being logged comes from a PHI source three files away."
+- On slide 3, point at the cross-file edge and say: "A regex sees the log line. A file-by-file AI sees the log line. The auditor's mental model sees that the value being logged comes from a PHI source three files away — and that's what `phi-tracer` does."
+- Mention Bob IDE on slide 3 by pointing at `bob_sessions/` in the repo: "Every prompt, every schema, every refactor in this repo has a Bob IDE task export. The build itself is the strongest evidence of how Bob IDE accelerates compliance work."
 - On slide 4, do not run the demo live during the pitch. The 2-minute video does that.
-- Close with: "Bob is the only AI that can reason about your codebase the way an auditor does. Sentinel is the productized version of that capability." Cut.
+- Close with: "Compliance is hard because it requires whole-repo reasoning. Bob IDE gives builders that reasoning at their fingertips. Sentinel is what falls out when you turn it on a compliance problem." Cut.
