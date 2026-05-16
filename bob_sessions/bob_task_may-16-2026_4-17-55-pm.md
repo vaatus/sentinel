@@ -49,7 +49,7 @@ The following file patterns are excluded from code reviews:
 <name>🏥 HIPAA Auditor</name>
 
 
-# Current Workspace Directory (/Users/taha.mersni/sentinel) Files
+# Current Workspace Directory (/Users/dev/sentinel) Files
 .gitignore
 CLAUDE.md
 LICENSE

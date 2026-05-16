@@ -1,12 +1,90 @@
-# Sentinel — Compliance Engineering Copilot
+<p align="center">
+  <img src="./docs/demo.gif" alt="Sentinel CLI scanning demo-clinic-app for HIPAA violations and auto-remediating" width="900">
+</p>
 
-> **Built with IBM Bob IDE** for the IBM Bob Hackathon (May 15–17, 2026). Exported Bob task session reports are in [`bob_sessions/`](./bob_sessions).
+# Sentinel — turn compliance into a daily-work habit
 
-Sentinel is a developer-facing compliance copilot that scans source code for **HIPAA**, **SOC 2**, and **PCI-DSS** violations, traces Protected Health Information (PHI) data flows, and generates minimal, reviewable remediation patches.
+<p align="center">
+  <img src="./docs/PITCH_DECK_slide-1-title.png" alt="Sentinel pitch — title slide" width="720">
+</p>
 
-- **Development partner:** IBM Bob IDE. Bob handled cross-file reasoning during the build — designing the 16 HIPAA controls, refactoring the orchestrator, writing the PHI-trace prompts, and reviewing the dashboard pages. Each task is exported as a markdown transcript + consumption-summary screenshot in `bob_sessions/`.
-- **Runtime engine:** Claude `claude-opus-4-7` (adaptive thinking, prompt caching). Sentinel's CLI ships the orchestrator and prompts; the model is swappable — a local Bob Shell binary works as a drop-in via `BOB_LIVE=1 SENTINEL_BOB_BIN=bob`.
-- **Falls back to deterministic mock** when no API key or Bob Shell is available, so the demo runs anywhere.
+```
+  ┌──────────────────────────────────────────────────────────────┐
+  │   SENTINEL — Compliance Engineering Copilot                  │
+  │   powered by IBM Bob IDE                                     │
+  └──────────────────────────────────────────────────────────────┘
+
+  $ sentinel scan --framework hipaa --path ./demo-clinic-app
+  ✔ Discovered 9 files
+  ✔ Bob (hipaa-auditor, live) returned 19 findings across 9 files
+  ✔ Bob (phi-tracer, live) mapped 5 PHI flows
+
+  ── Scan complete ───────────────────────────────────────────────
+  Compliance Score:  26 / 100   ✗ NOT AUDITABLE
+                                                                
+  Findings:                       PHI data flows:        5      
+    critical  3                   Bob session:    live           
+    high      9                   Export:    .sentinel/...      
+    medium    5
+    low       2
+```
+
+<p align="center">
+  <a href="./docs/PITCH_DECK.pdf">📊 5-slide pitch deck</a>
+  · <a href="./bob_sessions/">🤖 Bob IDE task sessions</a>
+  · <a href="./docs/controls/">📚 26 compliance controls reference</a>
+  · <a href="./docs/DEMO_SCRIPT.md">🎬 2-min demo script</a>
+</p>
+
+> **Submitted to the IBM Bob Hackathon (May 15–17, 2026).** Exported Bob IDE task session reports are in [`bob_sessions/`](./bob_sessions); the modes that drove them are in [`.bob/custom_modes.yaml`](./.bob/custom_modes.yaml).
+
+## For judges — start here
+
+If you have 30 seconds:
+
+1. Watch the GIF above.
+2. Skim [`bob_sessions/`](./bob_sessions) — six exported Bob IDE task histories that produced real code in this repo ($6.06 of Bobcoin spend, every file edit traceable to a task ID).
+3. Open [`.bob/custom_modes.yaml`](./.bob/custom_modes.yaml) — five compliance auditor modes you can load straight into your own Bob IDE on this repo and run `/audit-hipaa` yourself.
+
+If you have 5 minutes:
+
+4. Read the [pitch deck](./docs/PITCH_DECK.pdf) (8 slides, 1 minute).
+5. Run `npm install && npm run demo` — produces a real scan + remediation cycle in mock mode (no API key needed).
+6. Compare the Bob IDE session [`bob_task_may-16-2026_4-25-09-pm.md`](./bob_sessions) with the code in [`packages/cli/src/frameworks/hipaa.ts`](./packages/cli/src/frameworks/hipaa.ts) — Bob designed the 16th HIPAA control end-to-end and that diff is the strongest single piece of evidence for "meaningful use of Bob".
+
+## Turn idea into impact, faster — for compliance
+
+Most compliance tooling is **periodic**: a quarterly audit, a release-gate scan, a spreadsheet. By the time a violation is flagged, the engineer who wrote it has moved on three sprints.
+
+Sentinel makes compliance a **daily-work habit** by shipping two surfaces:
+
+1. **A CLI + dashboard** (`sentinel scan`, `sentinel remediate`, `sentinel dashboard`) for the periodic audit. Useful, but the boring part.
+2. **A Bob IDE skill pack** ([`.bob/custom_modes.yaml`](./.bob/custom_modes.yaml)) — drop it into any team's Bob IDE and every developer's editor becomes HIPAA/SOC 2/PCI-aware. `/audit-hipaa` works inline as you code. `/trace-phi` flags a logger leak the moment you type it. `/remediate <id>` opens a patch with cross-file blast-radius. **The same expertise Sentinel was built with becomes daily editor feedback.**
+
+That second surface is the heart of the pitch. Compliance becomes a habit, not an event.
+
+## Built with Bob IDE — receipts in `bob_sessions/`
+
+Per the hackathon brief, Bob IDE is the **mandatory development partner**, not just a passing helper. Every non-trivial decision in this repo has a corresponding Bob IDE task session you can read:
+
+| Task | What Bob did | Cost |
+|---|---|---|
+| [`audit run`](./bob_sessions) | Ran the `hipaa-auditor` custom mode end-to-end on `demo-clinic-app/` and produced structured JSON findings | $0.10 |
+| [`add §164.310 control`](./bob_sessions) | Designed + implemented a new HIPAA control across 4 files, including the demo violation that fires it | $1.49 |
+| [`generate tests`](./bob_sessions) | Wrote a 679-LOC `node:test` suite for `findingsStore.ts` — 30 cases, 30 passing | $0.39 |
+| [`refactor dirty-tree`](./bob_sessions) | Fixed a silent no-op in the remediation runner with a structured status field propagated through CLI + dashboard | $1.09 |
+| [`review controls`](./bob_sessions) | Auditor-style code review of `frameworks/hipaa.ts` with false-positive and false-negative analysis per control | $0.07 |
+| [`generate docs`](./bob_sessions) | Produced 26 per-control reference pages in `docs/controls/` plus an index | $2.92 |
+| **Total** | | **$6.06 / 40 Bobcoins** |
+
+## What this gets you
+
+- **CLI** — `sentinel scan --framework {hipaa,soc2,pci} --path .` returns prioritised findings + a 0–100 compliance score.
+- **Dashboard** — `sentinel dashboard` opens a Next.js UI showing the score, findings detail, PHI data-flow graph, and remediation PRs.
+- **Auto-remediation** — `sentinel remediate --all` generates diff patches with blast-radius analysis, applies them on disposable `sentinel/fix-*` branches.
+- **Bob IDE modes** — five custom modes (`hipaa-auditor`, `soc2-auditor`, `pci-auditor`, `phi-tracer`, `remediation-engineer`) that load directly into Bob IDE.
+
+**Engine details:** the runtime LLM is Claude `claude-opus-4-7` (with adaptive thinking and prompt caching on the controls catalog); a local Bob Shell binary is a drop-in via `BOB_LIVE=1 SENTINEL_BOB_BIN=bob`. With neither configured, the deterministic mock runner still produces meaningful findings so the demo runs anywhere.
 
 ---
 

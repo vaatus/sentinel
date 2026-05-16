@@ -61,7 +61,7 @@ The following file patterns are excluded from code reviews:
 <name>💻 Code</name>
 
 
-# Current Workspace Directory (/Users/taha.mersni/sentinel) Files
+# Current Workspace Directory (/Users/dev/sentinel) Files
 .gitignore
 CLAUDE.md
 LICENSE
@@ -645,7 +645,7 @@ Now I'll create the directory structure for the control documentation.
 **User:**
 
 [execute_command for 'mkdir -p docs/controls/hipaa docs/controls/soc2 docs/controls/pci'] Result:
-Command executed in terminal  within working directory '/Users/taha.mersni/sentinel'. Exit code: 0
+Command executed in terminal  within working directory '/Users/dev/sentinel'. Exit code: 0
 Output:
 
 <environment_details>

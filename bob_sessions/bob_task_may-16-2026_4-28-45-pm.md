@@ -47,7 +47,7 @@ The following file patterns are excluded from code reviews:
 <name>💻 Code</name>
 
 
-# Current Workspace Directory (/Users/taha.mersni/sentinel) Files
+# Current Workspace Directory (/Users/dev/sentinel) Files
 .gitignore
 CLAUDE.md
 LICENSE
@@ -1673,7 +1673,7 @@ Now let me verify the test suite runs correctly by executing it:
 **User:**
 
 [execute_command for 'cd packages/cli && npm install tsx && npm test'] Result:
-Command executed in terminal  within working directory '/Users/taha.mersni/sentinel'. Command execution was not successful, inspect the cause and adjust as needed.
+Command executed in terminal  within working directory '/Users/dev/sentinel'. Command execution was not successful, inspect the cause and adjust as needed.
 Exit code: 1
 Output:
 
@@ -1754,7 +1754,7 @@ test at src/orchestrator/findingsStore.test.ts:1:14927
   
     assert.ok(score >= 0 && score <= 100)
   
-      at TestContext.<anonymous> (/Users/taha.mersni/sentinel/packages/cli/src/orchestrator/findingsStore.test.ts:640:12)
+      at TestContext.<anonymous> (/Users/dev/sentinel/packages/cli/src/orchestrator/findingsStore.test.ts:640:12)
       at Test.runInAsyncScope (node:async_hooks:228:14)
       at Test.run (node:internal/test_runner/test:1118:25)
       at Suite.processPendingSubtests (node:internal/test_runner/test:787:18)
@@ -1770,9 +1770,9 @@ test at src/orchestrator/findingsStore.test.ts:1:14927
   }
 npm error Lifecycle script `test` failed with error:
 npm error code 1
-npm error path /Users/taha.mersni/sentinel/packages/cli
+npm error path /Users/dev/sentinel/packages/cli
 npm error workspace @sentinel/cli@0.1.0
-npm error location /Users/taha.mersni/sentinel/packages/cli
+npm error location /Users/dev/sentinel/packages/cli
 npm error command failed
 npm error command sh -c node --test --import tsx src/**/*.test.ts
 
@@ -1939,7 +1939,7 @@ Now let me run the tests again to verify they pass:
 **User:**
 
 [execute_command for 'cd packages/cli && npm test'] Result:
-Command executed in terminal  within working directory '/Users/taha.mersni/sentinel'. Exit code: 0
+Command executed in terminal  within working directory '/Users/dev/sentinel'. Exit code: 0
 Output:
 
 > @sentinel/cli@0.1.0 test
