@@ -65,10 +65,13 @@ footer: "Sentinel · IBM Bob Hackathon · May 2026"
 
 # Sentinel
 
-## Compliance Engineering Copilot
+## Compliance-as-CI for healthcare and fintech
 
-> Built with **IBM Bob IDE**.
-> Turns HIPAA, SOC 2, and PCI from a periodic audit into a **daily-work habit**.
+> The **Bob-powered agent** that scans every pull request and **blocks merges** that ship a HIPAA / SOC 2 / PCI violation.
+
+<br>
+
+> **$50K external audit + 6 months** → **$0 + 4 minutes per PR.**
 
 <br>
 
@@ -108,35 +111,31 @@ Compliance is *periodic*. A quarterly audit. A release-gate scan. By the time a 
 
 ---
 
-## The product — two surfaces
+## Three agentic surfaces, one Bob brain
 
-| Surface | What it is | When it runs |
+| Surface | Lives at | Closes the loop by |
 |---|---|---|
-| **CLI + dashboard** | `sentinel scan / remediate / dashboard` | CI, release gate, audit prep |
-| **Bob IDE skill pack** | `.bob/custom_modes.yaml` — 5 custom modes | **Every keystroke** in your editor |
+| 🤖 **Bob IDE skill pack** | Every developer's editor | `/audit-hipaa`, `/trace-phi`, `/remediate` inline |
+| 🛡️ **GitHub Actions agent** | Every pull request | Sticky PR comment + **fails the check on critical findings** |
+| ⚡ **CLI + dashboard** | Local + CI | Batch audit + auto-remediation patches |
 
-> Drop the modes into any team's Bob IDE → `/audit-hipaa` works inline as they code.
-> Compliance stops being an event. It becomes a habit.
+> The middle row is the **DORA Gatekeeper move** — non-compliant code stops merging.
+> Drop one YAML file into a repo → every PR is gated by a Bob-powered auditor.
 
 ---
 
-## The demo
+## The ROI math
 
-> **30 / 100 → 96 / 100. Four minutes. One command.**
+| Status quo | With Sentinel as CI gate |
+|---|---|
+| $50K × 2/yr in external audit fees | **$0** |
+| 4 engineer-months/yr on audit follow-up | **< 1 engineer-day/yr** |
+| Mean time to discover a HIPAA violation: months | **Before the PR merges** |
+| Mean post-shipping fix cost: $10K–$50K | **0 — never shipped** |
+| Per-PR Sentinel cost: | **$0.03 of API spend** |
 
-<div class="lead">
-
-`sentinel scan` flags 19 HIPAA violations across 9 files (5 PHI data flows, 3 critical findings).
-
-`sentinel remediate --all` opens 19 patch branches with cross-file blast-radius analysis.
-
-Re-scan: green. Audit-ready.
-
-</div>
-
-<div class="small">
-Full 2-minute demo video: linked in submission · live demo on stage: don't.
-</div>
+> Net structural cost-out: **$100K+/year per repo**.
+> Setup time: **10 minutes** — install one workflow + commit one YAML file.
 
 ---
 

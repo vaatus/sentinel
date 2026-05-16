@@ -256,7 +256,131 @@ brief example, demonstrated concretely. Save as
 
 ---
 
-## After all six tasks
+## 7 · `add-watch-mode` — the agentic upgrade (highest-leverage)
+
+**Mode:** default `Code` mode.
+
+**Why this one matters:** the existing CLI is invocation-driven (a developer types `sentinel scan`). Past IBM hackathon winners — NexusGuardAI, the Aegis Agent, DORA Gatekeeper — all won by being **autonomous**: the agent watches and acts. This task closes Sentinel's biggest gap by adding a diff-scoped, autonomous scan mode that the GitHub Actions workflow (`.github/workflows/sentinel-pr-check.yml`) calls on every PR.
+
+**Paste:**
+
+```
+Add a new subcommand: `sentinel watch`. It is the agentic mode of
+Sentinel — it scans only the files changed in a git diff and emits the
+result in three formats designed for autonomous use in CI, in editors,
+and in chat.
+
+Concretely:
+
+1. Add a new file @packages/cli/src/commands/watch.ts that exports
+   runWatch({ path, base, framework, format }) where:
+   - path:     target repo (default: cwd)
+   - base:     git ref to diff against (default: "origin/main", with a
+               fallback to "HEAD~1" if origin/main isn't reachable)
+   - framework: same as scan (default: hipaa)
+   - format:   "json" | "github-actions" | "markdown"  (default: "json")
+
+2. Inside runWatch:
+   - Use simple-git to list files that differ between HEAD and base.
+   - Filter to the same extensions that discoverFiles() handles.
+   - Call the same runAudit() pipeline scan.ts uses, but on the
+     diffed file list only — do NOT re-scan the whole repo.
+   - Compute the score across just those findings.
+
+3. Format outputs:
+   - "json" -> the same shape as `sentinel scan --json`.
+   - "github-actions" -> one line per finding in the form
+     `::error file=<file>,line=<line>,title=<control>::<explanation>`
+     (use ::warning:: for medium, ::notice:: for low). This is the
+     format GitHub Actions consumes natively to annotate the PR diff.
+   - "markdown" -> a sticky-comment-style block with a summary table
+     and a bulleted list of findings, suitable for posting back as a
+     PR comment via gh api.
+
+4. Wire the command into @packages/cli/src/index.ts following the
+   existing commander pattern. Update the @README.md "What this gets
+   you" section to mention `sentinel watch`.
+
+5. Update @.github/workflows/sentinel-pr-check.yml to call
+   `sentinel watch --format github-actions` for the inline diff
+   annotations and `sentinel watch --format markdown` for the sticky
+   comment body — so the workflow uses the diff-scoped scan path
+   instead of scanning the whole repo on every PR.
+
+6. Add a 3–5 case test in
+   @packages/cli/src/orchestrator/findingsStore.test.ts (or a new
+   file) that exercises runWatch against a fixture git repo using the
+   mock runner — confirm that only diffed files are scanned and that
+   each format renders the expected output.
+
+Tell me the diff for every file, then apply. Show me the test output
+afterwards.
+```
+
+**Expected output:** new `watch.ts` file (~150-250 LOC), commander
+wiring, updated workflow, tests, ~$0.80-$1.50 Bobcoin spend. Save as
+`bob_sessions/add-watch-mode.{md,png}`.
+
+**This becomes the new strongest single piece of evidence** for the
+submission — it's the agentic feature, built by Bob, that lifts
+Sentinel from "scanner" to "agent."
+
+---
+
+## 8 · `gdpr-stub` — prove the extensibility claim (low-cost)
+
+**Mode:** default `Code` mode.
+
+**Paste:**
+
+```
+Sentinel claims to be "extensible to any compliance regime." Prove it
+by stubbing a 4th framework: GDPR Article 32 (security of processing).
+
+Concretely:
+
+1. Add @packages/cli/src/frameworks/gdpr.ts following the existing
+   pattern in @packages/cli/src/frameworks/hipaa.ts. Include 4
+   controls minimum:
+     - Article 32(1)(a) — Pseudonymisation and encryption
+     - Article 32(1)(b) — Confidentiality, integrity, availability
+     - Article 32(1)(d) — Regular testing & evaluation
+     - Article 33     — Notification of personal data breach
+   Each needs a Control object with id, title, severity_default,
+   regex_prefilters, and bob_prompt_template.
+
+2. Register gdpr in @packages/cli/src/frameworks/index.ts and update
+   the Framework type in @packages/cli/src/types.ts.
+
+3. Add one mockBob detection branch for any one control in
+   @packages/cli/src/orchestrator/mockBob.ts so a mock-mode scan
+   still finds at least one GDPR violation in demo-clinic-app.
+
+4. Update @packages/cli/src/index.ts to accept "gdpr" as a valid
+   --framework value.
+
+5. Generate per-control docs at docs/controls/gdpr/*.md following
+   the existing format. Update docs/controls/README.md and the
+   @README.md "Control reference" section with the new framework.
+
+6. Confirm that `node packages/cli/dist/index.js scan --framework
+   gdpr --path ./demo-clinic-app --json` runs cleanly and produces
+   at least one finding.
+
+Show me the diff for each file, then apply. Run the scan at the end
+and report the finding count.
+```
+
+**Expected output:** new framework + 4 control docs + scan that
+produces real findings, ~$0.50-$1.00 Bobcoin spend. Save as
+`bob_sessions/gdpr-stub.{md,png}`.
+
+**Why it matters:** judges will ask "what about GDPR / FedRAMP / ISO?"
+This is the 30-minute receipt that Sentinel actually extends.
+
+---
+
+## After all eight tasks
 
 1. Run `npm test` (if task 3 added a test script). Paste the output as a
    final session — `verify-test-suite-passes.{md,png}` — so judges see

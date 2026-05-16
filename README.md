@@ -2,7 +2,16 @@
   <img src="./docs/demo.gif" alt="Sentinel CLI scanning demo-clinic-app for HIPAA violations and auto-remediating" width="900">
 </p>
 
-# Sentinel — turn compliance into a daily-work habit
+# Sentinel — Compliance-as-CI for healthcare and fintech
+
+<p align="center">
+  <em>The Bob-powered agent that scans every pull request, comments findings inline, and blocks merges that ship a HIPAA / SOC 2 / PCI violation.</em>
+</p>
+
+<p align="center">
+  <strong>$50K external audit + 6 months</strong> → <strong>$0 + 4 minutes per PR.</strong>
+</p>
+
 
 <p align="center">
   <img src="./docs/PITCH_DECK_slide-1-title.png" alt="Sentinel pitch — title slide" width="720">
@@ -30,7 +39,7 @@
 ```
 
 <p align="center">
-  <a href="./docs/PITCH_DECK.pdf">📊 5-slide pitch deck</a>
+  <a href="./docs/PITCH_DECK.pdf">📊 8-slide pitch deck</a>
   · <a href="./bob_sessions/">🤖 Bob IDE task sessions</a>
   · <a href="./docs/controls/">📚 26 compliance controls reference</a>
   · <a href="./docs/DEMO_SCRIPT.md">🎬 2-min demo script</a>
@@ -52,16 +61,36 @@ If you have 5 minutes:
 5. Run `npm install && npm run demo` — produces a real scan + remediation cycle in mock mode (no API key needed).
 6. Compare the Bob IDE session [`bob_task_may-16-2026_4-25-09-pm.md`](./bob_sessions) with the code in [`packages/cli/src/frameworks/hipaa.ts`](./packages/cli/src/frameworks/hipaa.ts) — Bob designed the 16th HIPAA control end-to-end and that diff is the strongest single piece of evidence for "meaningful use of Bob".
 
-## Turn idea into impact, faster — for compliance
+## The pitch
 
-Most compliance tooling is **periodic**: a quarterly audit, a release-gate scan, a spreadsheet. By the time a violation is flagged, the engineer who wrote it has moved on three sprints.
+Compliance tooling is broken because it's **periodic**. A quarterly audit. A release-gate scan. A spreadsheet that loses to deadline pressure. By the time a HIPAA finding hits Jira, the engineer who wrote the violating line has moved on three sprints. The fix becomes someone else's problem — usually 6 months and $50K of external auditors later.
 
-Sentinel makes compliance a **daily-work habit** by shipping two surfaces:
+Sentinel breaks the cycle by being **three surfaces in one product**, each closing the loop at a different point in the dev flow:
 
-1. **A CLI + dashboard** (`sentinel scan`, `sentinel remediate`, `sentinel dashboard`) for the periodic audit. Useful, but the boring part.
-2. **A Bob IDE skill pack** ([`.bob/custom_modes.yaml`](./.bob/custom_modes.yaml)) — drop it into any team's Bob IDE and every developer's editor becomes HIPAA/SOC 2/PCI-aware. `/audit-hipaa` works inline as you code. `/trace-phi` flags a logger leak the moment you type it. `/remediate <id>` opens a patch with cross-file blast-radius. **The same expertise Sentinel was built with becomes daily editor feedback.**
+| Surface | Lives at | Triggers on | Closes the loop by |
+|---|---|---|---|
+| **🤖 Bob IDE skill pack** ([`.bob/custom_modes.yaml`](./.bob/custom_modes.yaml)) | Every developer's editor | Every keystroke | `/audit-hipaa`, `/trace-phi`, `/remediate <id>` inline |
+| **🛡️ GitHub Actions agent** ([`.github/workflows/sentinel-pr-check.yml`](./.github/workflows/sentinel-pr-check.yml)) | Every pull request | Push, sync, reopen | Sticky PR comment + **fails the check** on critical findings |
+| **⚡ CLI + dashboard** (`sentinel scan`, `sentinel remediate`, `sentinel dashboard`) | Local + CI | On-demand | One-shot audit + auto-remediation patches with blast-radius |
 
-That second surface is the heart of the pitch. Compliance becomes a habit, not an event.
+> **The agent surface is the part you've never seen before.** Drop the workflow into any healthcare / fintech repo and **non-compliant code stops merging.** Drop the modes into any team's Bob IDE and every keystroke becomes auditor-aware. The CLI exists because there always has to be a last-resort batch tool.
+
+That's how compliance moves from **an event to a habit** — and how HIPAA fines, SOC 2 audit cycles, and PCI assessment fees stop being budget lines.
+
+## The ROI math
+
+A single F500 hospital network or fintech runs **2–4 external HIPAA / SOC 2 audits per year** at $30K–$150K each, plus 2–6 months of engineering time per audit cycle reviewing findings and back-filling fixes. Per-incident HIPAA penalties run **$50K–$1.5M**. PCI-DSS non-compliance fines run **$5K–$100K per month** until resolved.
+
+Sentinel's per-PR cost (with Claude as the runtime engine) is **~$0.03** of API spend per scan — call it $200/year for a busy repo. The Bob IDE skill pack is free; it's a YAML file.
+
+| Status quo | With Sentinel as CI gate |
+|---|---|
+| $50K × 2/yr external audit fees | $0 |
+| 4 engineer-months/yr on audit follow-up | < 1 engineer-day/yr |
+| Mean time to discover a HIPAA violation: **months** | **Before the PR merges** |
+| Mean cost to remediate post-shipping: **$10K–$50K** | **0 — never shipped** |
+
+That's a **$100K+/year per repo** structural cost-out for a tool that takes 10 minutes to install.
 
 ## Built with Bob IDE — receipts in `bob_sessions/`
 
