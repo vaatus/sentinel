@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build CLI
+        run: npm run build
+
+      - name: Type-check dashboard
+        run: npx tsc --noEmit -p packages/dashboard/tsconfig.json
+
+      - name: Build dashboard
+        run: npm run build:dashboard
+
+      - name: Mock-mode scan smoke test
+        run: |
+          node packages/cli/dist/index.js scan \
+            --framework hipaa \
+            --path ./demo-clinic-app \
+            --json | node -e "
+              const s = JSON.parse(require('fs').readFileSync(0, 'utf8'));
+              if (!Array.isArray(s.findings) || s.findings.length === 0) {
+                console.error('no findings in mock scan'); process.exit(1);
+              }
+              console.log('mock scan ok:', s.findings.length, 'findings, score', s.score);
+            "
+
+      - name: SOC2 + PCI smoke tests
+        run: |
+          node packages/cli/dist/index.js scan --framework soc2 --path ./demo-clinic-app --json > /dev/null
+          node packages/cli/dist/index.js scan --framework pci  --path ./demo-clinic-app --json > /dev/null
