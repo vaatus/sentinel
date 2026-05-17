@@ -20,3 +20,4 @@ app.get("/health", (_req, res) => res.json({ ok: true }));
 const PORT = process.env.PORT ?? 4100;
 const HOST = "0.0.0.0"; // Binds to all interfaces without IP restrictions
 app.listen(PORT, HOST, () => logger.info(`demo-clinic-app listening on ${HOST}:${PORT}`));
+// trigger: Sentinel demo PR recording 1779027747
