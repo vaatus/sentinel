@@ -53,8 +53,9 @@ Sentinel reframes compliance as a daily-work habit. It ships two surfaces:
 
 The CLI runs the same prompt templates as the IDE modes, so behaviour is
 consistent across the editor and the headless runtime. Sentinel detects
-violations across 26 controls: 16 HIPAA Security Rule, 6 SOC 2 Trust Services
-Criteria, 4 PCI-DSS v4.0.
+violations across 30 controls: 16 HIPAA Security Rule, 6 SOC 2 Trust Services
+Criteria, 4 PCI-DSS v4.0, 4 GDPR Article 32. The fourth framework was added
+by Bob in a single session to prove the architecture is regime-agnostic.
 
 Compliance stops being an event. It becomes a habit.
 ```
@@ -64,21 +65,26 @@ Compliance stops being an event. It becomes a habit.
 ```
 Bob IDE was the mandatory development partner — receipts in bob_sessions/.
 
-Six task sessions, $6.06 of Bobcoin spend, six visible code outcomes:
+Eight task sessions, $12.39 of Bobcoin spend, eight visible code outcomes:
 
 - audit run via hipaa-auditor mode: produced structured JSON findings on
-  demo-clinic-app + auditor notes ($0.10)
+  demo-clinic-app + auditor notes ($0.17)
 - added §164.310(a)(1) Facility Access Controls end-to-end: 4 files edited,
   demo violation seeded, control count refreshed in README and CLAUDE.md
-  ($1.49)
+  ($1.60)
 - generated a node:test suite for findingsStore.ts: 679 LOC, 30 tests,
-  30 passing ($0.39)
+  30 passing ($0.46)
 - refactored a silent dirty-tree no-op in the remediation runner: introduced
-  a structured status field propagated across CLI + dashboard ($1.09)
+  a structured status field propagated across CLI + dashboard ($1.18)
 - code-reviewed the HIPAA control catalog with false-positive /
-  false-negative analysis per control ($0.07)
+  false-negative analysis per control ($0.13)
 - generated docs/controls/ — 26 per-control reference markdown pages plus
-  an index ($2.92)
+  an index ($3.06)
+- built `sentinel watch`: 276-LOC diff-scoped agentic scan with three output
+  formats (json / github-actions / markdown) + 3 new tests; powers the
+  GitHub Actions PR-check workflow ($2.52)
+- stubbed GDPR Article 32 as a 4th compliance framework (4 controls + 4
+  per-control docs) to prove the architecture is regime-agnostic ($3.26)
 
 Each task is preserved in bob_sessions/ as an exported markdown transcript
 with the consumption summary screenshot beside it. Every file edited in this

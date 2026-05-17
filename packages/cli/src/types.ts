@@ -1,6 +1,6 @@
 export type Severity = "critical" | "high" | "medium" | "low";
 
-export type Framework = "hipaa" | "soc2" | "pci";
+export type Framework = "hipaa" | "soc2" | "pci" | "gdpr";
 
 export interface Finding {
   id: string;
@@ -67,6 +67,27 @@ export interface RemediationResponse {
   blast_radius: BlastRadiusEntry[];
   test_recommendations: string[];
   rationale: string;
+}
+
+export type VerificationStatus =
+  | "verified-resolved"
+  | "partial"
+  | "regression"
+  | "neutral";
+
+export interface VerificationResult {
+  status: VerificationStatus;
+  new_findings: Omit<Finding, "id" | "framework" | "status" | "created_at">[];
+  original_finding_present: boolean;
+  new_high_severity_count: number;
+}
+
+export interface RemediationResult {
+  finding_id: string;
+  branch: string;
+  files_changed: string[];
+  status: string;
+  verification?: VerificationResult;
 }
 
 export interface Control {

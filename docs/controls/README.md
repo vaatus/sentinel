@@ -62,21 +62,36 @@ The Payment Card Industry Data Security Standard (PCI-DSS) is a set of security 
 - [4.2.1 — Strong Cryptography for Transmission](./pci/4-2-1.md) - Use TLS for payment data
 - [6.4.3 — Production Test Card Data](./pci/6-4-3.md) - No test cards in production code
 
+## GDPR (General Data Protection Regulation)
+
+The General Data Protection Regulation (GDPR) is a comprehensive data protection law in the EU that regulates how personal data of EU citizens must be processed and protected.
+
+### Security of Processing (Article 32)
+- [Article 32(1)(a) — Pseudonymisation and Encryption](./gdpr/art32-1-a.md) - Encrypt or pseudonymize personal data at rest
+- [Article 32(1)(b) — Confidentiality, Integrity, Availability](./gdpr/art32-1-b.md) - Ensure ongoing security of processing systems
+- [Article 32(1)(d) — Regular Testing and Evaluation](./gdpr/art32-1-d.md) - Test and evaluate security measures regularly
+
+### Breach Notification
+- [Article 33 — Notification of Personal Data Breach](./gdpr/art33.md) - Implement proper breach detection and logging
+
 ## Quick Reference by Severity
 
 ### Critical Severity
 - HIPAA: 164.312(a)(2)(iv), 164.312(b)-leak, 164.312(e)(1)
 - SOC2: CC6.6
 - PCI: 3.4.1, 3.3.1, 4.2.1
+- GDPR: Art32(1)(a)
 
 ### High Severity
 - HIPAA: 164.312(a)(1), 164.312(a)(2)(i), 164.312(b), 164.312(d), 164.310(a)(1), 164.514(a), 164.308(a)(3)
 - SOC2: CC6.1
 - PCI: 6.4.3
+- GDPR: Art32(1)(b), Art33
 
 ### Medium Severity
 - HIPAA: 164.312(c)(1), 164.308(a)(4), 164.308(a)(5)(ii)(D), 164.308(a)(1)(ii)(D)
 - SOC2: CC6.2, CC7.2
+- GDPR: Art32(1)(d)
 
 ### Low Severity
 - HIPAA: 164.308(a)(7), 164.316

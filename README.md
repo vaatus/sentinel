@@ -5,7 +5,7 @@
 # Sentinel — Compliance-as-CI for healthcare and fintech
 
 <p align="center">
-  <em>The Bob-powered agent that scans every pull request, comments findings inline, and blocks merges that ship a HIPAA / SOC 2 / PCI violation.</em>
+  <em>The Bob-powered agent that scans every pull request, comments findings inline, and blocks merges that ship a HIPAA / SOC 2 / PCI / GDPR violation.</em>
 </p>
 
 <p align="center">
@@ -41,7 +41,7 @@
 <p align="center">
   <a href="./docs/PITCH_DECK.pdf">📊 8-slide pitch deck</a>
   · <a href="./bob_sessions/">🤖 Bob IDE task sessions</a>
-  · <a href="./docs/controls/">📚 26 compliance controls reference</a>
+  · <a href="./docs/controls/">📚 30 compliance controls reference</a>
   · <a href="./docs/DEMO_SCRIPT.md">🎬 2-min demo script</a>
 </p>
 
@@ -52,7 +52,7 @@
 If you have 30 seconds:
 
 1. Watch the GIF above.
-2. Skim [`bob_sessions/`](./bob_sessions) — six exported Bob IDE task histories that produced real code in this repo ($6.06 of Bobcoin spend, every file edit traceable to a task ID).
+2. Skim [`bob_sessions/`](./bob_sessions) — eight exported Bob IDE task histories that produced real code in this repo ($12.39 of Bobcoin spend, every file edit traceable to a task ID).
 3. Open [`.bob/custom_modes.yaml`](./.bob/custom_modes.yaml) — five compliance auditor modes you can load straight into your own Bob IDE on this repo and run `/audit-hipaa` yourself.
 
 If you have 5 minutes:
@@ -104,11 +104,14 @@ Per the hackathon brief, Bob IDE is the **mandatory development partner**, not j
 | [`refactor dirty-tree`](./bob_sessions) | Fixed a silent no-op in the remediation runner with a structured status field propagated through CLI + dashboard | $1.09 |
 | [`review controls`](./bob_sessions) | Auditor-style code review of `frameworks/hipaa.ts` with false-positive and false-negative analysis per control | $0.07 |
 | [`generate docs`](./bob_sessions) | Produced 26 per-control reference pages in `docs/controls/` plus an index | $2.92 |
-| **Total** | | **$6.06 / 40 Bobcoins** |
+| [`build watch agent`](./bob_sessions) | Designed + built `sentinel watch` — diff-scoped agentic scan with 3 output formats (json / github-actions / markdown) + 3 new tests | $2.52 |
+| [`stub GDPR framework`](./bob_sessions) | Added GDPR Article 32 as 4th compliance framework (4 controls + 4 per-control docs); proves the architecture is regime-agnostic | $3.26 |
+| **Total** | | **$12.39 / 40 Bobcoins** |
 
 ## What this gets you
 
 - **CLI** — `sentinel scan --framework {hipaa,soc2,pci} --path .` returns prioritised findings + a 0–100 compliance score.
+- **Watch mode** — `sentinel watch --format {json,github-actions,markdown}` scans only changed files in a git diff for agentic CI integration.
 - **Dashboard** — `sentinel dashboard` opens a Next.js UI showing the score, findings detail, PHI data-flow graph, and remediation PRs.
 - **Auto-remediation** — `sentinel remediate --all` generates diff patches with blast-radius analysis, applies them on disposable `sentinel/fix-*` branches.
 - **Bob IDE modes** — five custom modes (`hipaa-auditor`, `soc2-auditor`, `pci-auditor`, `phi-tracer`, `remediation-engineer`) that load directly into Bob IDE.
@@ -124,6 +127,10 @@ Per the hackathon brief, Bob IDE is the **mandatory development partner**, not j
 | `sentinel scan --framework hipaa` | Scans a codebase, returns prioritised findings + a compliance score (0–100) |
 | `sentinel scan --framework soc2` | Same for SOC 2 Trust Services Criteria |
 | `sentinel scan --framework pci` | Same for PCI-DSS controls |
+| `sentinel scan --framework gdpr` | Same for GDPR Article 32 controls |
+| `sentinel watch --format json` | Scans only changed files in git diff (agentic CI mode) |
+| `sentinel watch --format github-actions` | Emits findings as GitHub Actions annotations for inline PR comments |
+| `sentinel watch --format markdown` | Generates a sticky PR comment body with findings summary |
 | `sentinel remediate --all` | Generates diff patches for every open finding and opens local git branches |
 | `sentinel dashboard` | Opens a Next.js web dashboard showing score, findings, PHI flows, and PRs |
 
@@ -137,7 +144,7 @@ sentinel/
 │   └── src/
 │       ├── commands/      # scan.ts, remediate.ts — CLI entry points
 │       ├── orchestrator/  # claudeRunner.ts (Anthropic SDK), bobRunner.ts, findingsStore.ts
-│       ├── frameworks/    # HIPAA, SOC2, PCI control definitions
+│       ├── frameworks/    # HIPAA, SOC2, PCI, GDPR control definitions
 │       └── git/           # prGenerator.ts — local branch + diff writer
 └── packages/dashboard/    # Next.js 14 App Router dashboard
     ├── app/               # Pages: overview, findings, data-flow, prs
@@ -187,11 +194,31 @@ The three Claude call surfaces:
 
 ## Quick start
 
-```bash
-# Install
-npm install
+**Bootstrap a new repo in under 10 minutes:**
 
-# Build the CLI
+```bash
+# One-command installer — drops all Sentinel artefacts into your repo
+npx sentinel init
+
+# Answer 3 questions:
+#   1. Which frameworks? (hipaa / soc2 / pci / gdpr)
+#   2. Blocker level? (critical | high)
+#   3. Install GitHub Actions workflow? (Y/n)
+
+# Commit and push
+git add . && git commit -m "Add Sentinel compliance scanning"
+git push
+
+# Open a PR — Sentinel scans it automatically and blocks non-compliant merges
+```
+
+**Or install from source:**
+
+```bash
+# Clone and build
+git clone https://github.com/your-org/sentinel.git
+cd sentinel
+npm install
 npm run build
 
 # Scan with real Claude (requires ANTHROPIC_API_KEY)
@@ -258,7 +285,7 @@ score = 100 − (critical × 8 + high × 4 + medium × 2 + low × 1)  [clamped 0
 
 ## Control reference
 
-Sentinel detects violations across **26 compliance controls** spanning HIPAA Security Rule (16 controls), SOC 2 TSC (6 controls), and PCI-DSS v4.0 (4 controls).
+Sentinel detects violations across **30 compliance controls** spanning HIPAA Security Rule (16 controls), SOC 2 TSC (6 controls), PCI-DSS v4.0 (4 controls), and GDPR Article 32 (4 controls).
 
 Each control has detailed reference documentation explaining:
 - What the regulatory requirement means in plain English
@@ -273,6 +300,7 @@ Each control has detailed reference documentation explaining:
 - **[HIPAA Security Rule](./docs/controls/README.md#hipaa-security-rule)** — 16 controls covering access control, encryption, audit logging, PHI integrity, and workforce security
 - **[SOC 2 Trust Services Criteria](./docs/controls/README.md#soc-2-trust-services-criteria)** — 6 controls for logical access, monitoring, and change management
 - **[PCI-DSS v4.0](./docs/controls/README.md#pci-dss-v40)** — 4 controls for cardholder data protection and secure transmission
+- **[GDPR Article 32](./docs/controls/gdpr/)** — 4 controls for security of personal data processing (pseudonymisation, CIA, testing, breach notification)
 
 ### Example controls
 

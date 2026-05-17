@@ -65,6 +65,8 @@ export class FindingsStore {
         blast_radius_json TEXT NOT NULL,
         rationale TEXT NOT NULL,
         status TEXT NOT NULL DEFAULT 'applied',
+        verification_status TEXT,
+        verification_json TEXT,
         created_at TEXT NOT NULL,
         FOREIGN KEY (finding_id) REFERENCES findings(id)
       );
@@ -158,12 +160,13 @@ export class FindingsStore {
     blastRadius: any[];
     rationale: string;
     status: string;
+    verification?: any;
   }) {
     const id = `rem-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     this.db
       .prepare(
-        `INSERT INTO remediation_prs (id, finding_id, branch, diff, blast_radius_json, rationale, status, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO remediation_prs (id, finding_id, branch, diff, blast_radius_json, rationale, status, verification_status, verification_json, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
         id,
@@ -173,6 +176,8 @@ export class FindingsStore {
         JSON.stringify(args.blastRadius),
         args.rationale,
         args.status,
+        args.verification?.status ?? null,
+        args.verification ? JSON.stringify(args.verification) : null,
         new Date().toISOString(),
       );
     this.db.prepare(`UPDATE findings SET status = 'pr-opened' WHERE id = ?`).run(args.findingId);
@@ -246,6 +251,8 @@ export class FindingsStore {
       blast_radius: JSON.parse(r.blast_radius_json ?? "[]"),
       rationale: r.rationale,
       status: r.status ?? "applied",
+      verification_status: r.verification_status ?? null,
+      verification: r.verification_json ? JSON.parse(r.verification_json) : null,
       created_at: r.created_at,
     }));
     writeFileSync(remediationsPath, JSON.stringify(remediations, null, 2));

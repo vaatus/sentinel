@@ -1,13 +1,14 @@
 # demo-clinic-app
 
 A *deliberately broken* healthcare app used as Sentinel's scan target.
-It seeds 8 HIPAA Security Rule violations across 9 files so that
-running `sentinel scan --framework hipaa --path ./demo-clinic-app`
-produces a meaningful audit report.
+It seeds **14 compliance violations** across multiple frameworks (HIPAA, SOC 2, PCI DSS, GDPR)
+so that running `sentinel scan` produces meaningful audit reports for each framework.
 
 **Do not deploy.** Every violation here is intentional.
 
 ## Seeded violations
+
+### HIPAA Security Rule (9 violations)
 
 | Control            | File                       | What is wrong                                    |
 | ------------------ | -------------------------- | ------------------------------------------------ |
@@ -19,3 +20,26 @@ produces a meaningful audit report.
 | §164.312(d)        | `src/auth/basic.ts`        | Basic auth only                                  |
 | §164.312(e)(1)     | `src/routes/billing.ts`    | Outbound HTTP (non-TLS) for billing payload      |
 | §164.514(a)        | `src/routes/patients.ts`   | Full PHI returned in response (no minimization)  |
+| §164.310(a)(1)     | `src/server.ts`            | Server binds to 0.0.0.0 without IP restrictions  |
+
+### SOC 2 Trust Services Criteria (2 violations)
+
+| Control | File                    | What is wrong                                           |
+| ------- | ----------------------- | ------------------------------------------------------- |
+| CC6.1   | `src/routes/admin.ts`   | Admin access granted via query string (?admin=true)     |
+| CC7.2   | `src/db/migrations.ts`  | Database migration alters sensitive columns without audit trail |
+
+### PCI DSS (2 violations)
+
+| Control | File              | What is wrong                                              |
+| ------- | ----------------- | ---------------------------------------------------------- |
+| 3.4.1   | `src/payments.ts` | Credit card numbers stored unencrypted in transactions table |
+| 4.2.1   | `src/payments.ts` | PAN transmitted over HTTP (not HTTPS) to payment gateway   |
+
+### GDPR (1 violation)
+
+| Control         | File                  | What is wrong                                           |
+| --------------- | --------------------- | ------------------------------------------------------- |
+| Article 32(1)(a) | `src/routes/users.ts` | EU resident PII returned without pseudonymisation      |
+
+## Total: 14 violations across 4 frameworks

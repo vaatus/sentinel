@@ -1,10 +1,12 @@
 import chalk from "chalk";
 import ora from "ora";
 import { resolve } from "node:path";
+import { simpleGit } from "simple-git";
 import { FindingsStore } from "../orchestrator/findingsStore.js";
-import { runRemediation } from "../orchestrator/bobRunner.js";
-import { buildRemediationPrompt } from "../orchestrator/promptBuilder.js";
+import { runRemediation, runAudit } from "../orchestrator/bobRunner.js";
+import { buildRemediationPrompt, buildAuditPrompt } from "../orchestrator/promptBuilder.js";
 import { openLocalPr } from "../git/prGenerator.js";
+import type { Finding, VerificationResult, VerificationStatus, RemediationResult } from "../types.js";
 
 export interface RemediateOptions {
   path: string;
@@ -12,6 +14,90 @@ export interface RemediateOptions {
   all?: boolean;
   apply?: boolean;
   json?: boolean;
+}
+
+async function verifyRemediation(args: {
+  repoRoot: string;
+  branch: string;
+  finding: Finding;
+  patchedFiles: string[];
+}): Promise<VerificationResult> {
+  const git = simpleGit(args.repoRoot);
+  const isRepo = await git.checkIsRepo().catch(() => false);
+  
+  if (!isRepo) {
+    // Can't verify without git - assume neutral
+    return {
+      status: "neutral",
+      new_findings: [],
+      original_finding_present: false,
+      new_high_severity_count: 0,
+    };
+  }
+
+  try {
+    // Get current branch to restore later
+    const status = await git.status();
+    const currentBranch = status.current ?? "main";
+    
+    // Checkout the fix branch
+    await git.checkout(args.branch);
+    
+    // Re-run audit on just the patched files
+    const auditPrompt = buildAuditPrompt(args.finding.framework, args.patchedFiles);
+    const audit = await runAudit({
+      framework: args.finding.framework,
+      cwd: args.repoRoot,
+      files: args.patchedFiles,
+      prompt: auditPrompt,
+    });
+    
+    // Restore original branch
+    await git.checkout(currentBranch);
+    
+    // Analyze the new findings
+    const newFindings = audit.json.findings;
+    
+    // Check if original finding is still present
+    const originalStillPresent = newFindings.some(
+      (f) =>
+        f.control === args.finding.control &&
+        f.file === args.finding.file &&
+        Math.abs(f.line_start - args.finding.line_start) <= 5 // Allow small line shifts
+    );
+    
+    // Count new high-severity findings (critical or high)
+    const newHighSeverityCount = newFindings.filter(
+      (f) => f.severity === "critical" || f.severity === "high"
+    ).length;
+    
+    // Determine verification status
+    let verificationStatus: VerificationStatus;
+    if (originalStillPresent) {
+      verificationStatus = "regression";
+    } else if (newHighSeverityCount > 0) {
+      verificationStatus = "partial";
+    } else if (newFindings.length === 0) {
+      verificationStatus = "verified-resolved";
+    } else {
+      verificationStatus = "neutral";
+    }
+    
+    return {
+      status: verificationStatus,
+      new_findings: newFindings,
+      original_finding_present: originalStillPresent,
+      new_high_severity_count: newHighSeverityCount,
+    };
+  } catch (error) {
+    // If verification fails, return neutral status
+    return {
+      status: "neutral",
+      new_findings: [],
+      original_finding_present: false,
+      new_high_severity_count: 0,
+    };
+  }
 }
 
 export async function runRemediate(opts: RemediateOptions): Promise<void> {
@@ -43,7 +129,7 @@ export async function runRemediate(opts: RemediateOptions): Promise<void> {
     console.log();
   }
 
-  const results: any[] = [];
+  const results: RemediationResult[] = [];
   for (const f of targets) {
     if (!f) continue;
     const spin = opts.json ? null : ora(`${f.severity.padEnd(8)} ${f.control}  ${f.file}:${f.line_start}`).start();
@@ -70,6 +156,20 @@ export async function runRemediate(opts: RemediateOptions): Promise<void> {
         applyToWorkingTree: opts.apply,
       });
 
+      // Run verification if we successfully created a branch
+      let verification: VerificationResult | undefined;
+      if (pr.status === "applied" && pr.filesChanged.length > 0) {
+        if (spin) {
+          spin.text = `${f.severity.padEnd(8)} ${f.control}  ${f.file}:${f.line_start} - verifying fix...`;
+        }
+        verification = await verifyRemediation({
+          repoRoot: target,
+          branch: pr.branch,
+          finding: f,
+          patchedFiles: pr.filesChanged,
+        });
+      }
+
       store.insertRemediation({
         findingId: f.id,
         branch: pr.branch,
@@ -77,6 +177,7 @@ export async function runRemediate(opts: RemediateOptions): Promise<void> {
         blastRadius: rem.json.blast_radius,
         rationale: rem.json.rationale,
         status: pr.status,
+        verification,
       });
 
       results.push({
@@ -84,6 +185,7 @@ export async function runRemediate(opts: RemediateOptions): Promise<void> {
         branch: pr.branch,
         files_changed: pr.filesChanged,
         status: pr.status,
+        verification,
       });
 
       // Format status message with appropriate color
@@ -98,8 +200,22 @@ export async function runRemediate(opts: RemediateOptions): Promise<void> {
         statusMsg = chalk.yellow("⚠ Skipped (not a repo) - patch saved");
       }
 
+      // Add verification badge
+      let verifyBadge = "";
+      if (verification) {
+        if (verification.status === "verified-resolved") {
+          verifyBadge = chalk.green(" ✓ verified");
+        } else if (verification.status === "partial") {
+          verifyBadge = chalk.yellow(` ⚠ partial (${verification.new_high_severity_count} new high-severity)`);
+        } else if (verification.status === "regression") {
+          verifyBadge = chalk.red(" ✗ regression");
+        } else {
+          verifyBadge = chalk.dim(" • neutral");
+        }
+      }
+
       spin?.succeed(
-        `${statusMsg}  ${pr.branch}  ${chalk.dim(`(blast radius: ${rem.json.blast_radius.length} files)`)}`,
+        `${statusMsg}  ${pr.branch}${verifyBadge}  ${chalk.dim(`(blast radius: ${rem.json.blast_radius.length} files)`)}`,
       );
     } catch (e: any) {
       spin?.fail(`failed: ${e.message}`);

@@ -380,29 +380,264 @@ This is the 30-minute receipt that Sentinel actually extends.
 
 ---
 
-## After all eight tasks
+## 9 · `sentinel-init-wizard` — proves the "10 minutes to install" claim
 
-1. Run `npm test` (if task 3 added a test script). Paste the output as a
-   final session — `verify-test-suite-passes.{md,png}` — so judges see
-   that Bob-generated code actually runs.
-2. Run `npm run build` and `npm run build:dashboard` to confirm the
-   refactor from task 4 didn't break anything. If it did, run a fix
-   session and export that too.
+**Mode:** default `Code` mode.
+
+**Why this one matters:** the README and pitch deck both claim "Drop one
+YAML file into a repo → every PR is gated by a Bob-powered auditor" and
+"Setup time: 10 minutes." Right now there's a stub `init` command but no
+real wizard. This task makes the claim true and gives the demo video its
+strongest single scene — running one command and watching `.bob/`,
+`.github/workflows/`, and `.sentinel/` all appear in a target repo.
+
+**Paste:**
+
+```
+Replace the stub @packages/cli/src/commands/init.ts with a real
+interactive bootstrapper. Goal: `sentinel init` is the
+one-command-installer that drops every Sentinel artefact into a target
+repo so the user gets CI-gated compliance in under 10 minutes.
+
+Concretely:
+
+1. Use @inquirer/prompts (add it as a dependency) to ask three
+   questions, with sensible defaults:
+   - Which frameworks? (multiselect: hipaa / soc2 / pci / gdpr,
+     default: hipaa)
+   - Compliance blocker level? (critical | high, default: critical)
+   - Install the GitHub Actions PR-check workflow? (Y/n, default: Y)
+
+2. Based on answers, idempotently create:
+   - `.bob/custom_modes.yaml` — copied verbatim from the Sentinel repo
+     root, so the target's Bob IDE inherits all five custom modes.
+   - `.sentinel/config.json` — { frameworks: [...], blockerLevel: ... }.
+   - `.github/workflows/sentinel-pr-check.yml` (only if the user said
+     yes) — copied from this repo's workflow, with the framework env
+     defaulted to whatever the user picked.
+
+3. If any of those files already exist, prompt before overwriting and
+   default to "no" — never clobber silently. Use a real diff preview
+   (chalk-coloured) so the user can see what would change.
+
+4. After writing, print a 5-line "next steps" block:
+   - `git add . && git commit -m "Add Sentinel"`
+   - `gh secret set ANTHROPIC_API_KEY` (or skip — mock mode still
+     works)
+   - Open a PR — Sentinel will scan it automatically
+   - Run `sentinel scan --framework <framework>` locally any time
+   - Run `sentinel dashboard` to view findings
+
+5. Add a 5-case test in
+   @packages/cli/src/commands/init.test.ts that runs `runInit()`
+   against a tmpdir with mocked prompt answers and asserts each
+   artefact exists and contains expected keys. Use Node's built-in
+   test runner.
+
+6. Update @README.md "Quick start" to lead with `npx sentinel init`
+   as the bootstrap path.
+
+Tell me the diff for every file, then apply. Show me the test output
+and the printed wizard interaction at the end.
+```
+
+**Expected output:** real interactive init wizard, test coverage, README
+update, ~$1.50-$2.50 Bobcoin spend. Save as
+`bob_sessions/sentinel-init-wizard.{md,png}`.
+
+**Why it matters most:** this is the **demo-video gold scene**.
+"Watch me install Sentinel into a fresh repo in under 60 seconds" — and
+the install itself is Bob-built.
+
+---
+
+## 10 · `seed-multiframework-violations` — make the demo richer
+
+**Mode:** default `Code` mode.
+
+**Why this one matters:** today `demo-clinic-app` has 9 seeded violations,
+all HIPAA. The demo video and dashboard screenshot under-sell the
+multi-framework story because there's nothing for SOC 2, PCI, or GDPR to
+actually find. Five more violations across the other three frameworks
+makes every framework scan produce a meaningful score.
+
+**Paste:**
+
+```
+Add 5 deliberately-seeded compliance violations to @demo-clinic-app so
+that scans for SOC 2, PCI, and GDPR each return at least one
+high-severity finding (today they mostly return zeros).
+
+Concretely:
+
+1. SOC 2 — CC6.1 Logical Access: in
+   @demo-clinic-app/src/routes/admin.ts, add a route that grants
+   admin access based on a query string flag (?admin=true) with no
+   real auth check. This should fire the existing CC6.1 prefilter.
+
+2. SOC 2 — CC7.2 Change Detection: in
+   @demo-clinic-app/src/db/migrations.ts, add a migration that
+   alters a sensitive column without any audit/version tracking.
+
+3. PCI — 3.4.1 PAN at rest: add @demo-clinic-app/src/payments.ts
+   that stores a credit card number to a "transactions" table with
+   no encryption. Use a realistic field name (card_number) so
+   regex prefilters catch it.
+
+4. PCI — 4.2.1 Transmission: in the same file, add an axios.post()
+   to "http://" (NOT https) sending the card number to a fake
+   merchant endpoint. This should fire the cleartext-PAN-transmission
+   control.
+
+5. GDPR — Article 32(1)(a): in @demo-clinic-app/src/routes/users.ts,
+   add an endpoint that returns a user record with EU residency
+   without any pseudonymisation — return raw name + email + phone.
+
+For each one, also add a comment in the source `// SENTINEL: seeded
+violation for framework=<name>, control=<id>` so judges scanning the
+demo app can verify what's intentional.
+
+Update @demo-clinic-app/README.md (create if missing) listing all 14
+seeded violations now (9 HIPAA + 5 across the other frameworks).
+
+Run all four scans at the end:
+  - sentinel scan --framework hipaa
+  - sentinel scan --framework soc2
+  - sentinel scan --framework pci
+  - sentinel scan --framework gdpr
+and report the finding counts for each.
+```
+
+**Expected output:** 5 new violations across 3 framework files, demo
+README, all 4 scans returning non-zero, ~$0.80-$1.50 Bobcoin spend. Save
+as `bob_sessions/seed-multiframework-violations.{md,png}`.
+
+**Why it matters:** the demo video can now run all 4 framework scans and
+show a meaningful score for each. Without this, only HIPAA looks alive.
+
+---
+
+## 11 · `verify-remediation-loop` — closes the agentic loop
+
+**Mode:** default `Code` mode.
+
+**Why this one matters:** the README claims "Sentinel generates fix
+patches" but never *verifies* the fix actually resolves the finding.
+Past winners (DORA Gatekeeper, NexusGuardAI) all closed this loop —
+remediate → re-scan → confirm. This task adds the verification step that
+turns Sentinel from a scanner into a closed-loop agent.
+
+**Paste:**
+
+```
+Add an automatic re-scan + verification step to the remediate flow so
+each generated patch is provably effective. Today
+@packages/cli/src/commands/remediate.ts applies a patch to a
+`sentinel/fix-<id>` branch but never re-runs the scan to confirm the
+finding is actually resolved.
+
+Concretely:
+
+1. After @packages/cli/src/git/prGenerator.ts applies a remediation,
+   re-run the relevant audit step against just the patched file(s)
+   on the fix branch using the same runAudit() path the scanner uses.
+
+2. Determine the finding's status by comparing the new findings list
+   to the original finding id:
+   - "verified-resolved" — original finding no longer present in
+     the new scan output on the fix branch
+   - "partial" — finding gone but new findings of equal or higher
+     severity introduced
+   - "regression" — original finding still present (the patch
+     didn't actually fix it)
+   - "neutral" — finding gone, no new findings introduced
+
+3. Extend the RemediationResult type in @packages/cli/src/types.ts
+   with a `verification` field carrying this status + the new
+   findings (if any).
+
+4. Update @packages/cli/src/commands/remediate.ts to print the
+   verification status alongside the existing patch summary. JSON
+   output (`--json`) must include the verification block too.
+
+5. Update the dashboard PR page
+   (@packages/dashboard/app/prs/page.tsx) to show a coloured badge
+   per remediation: green for verified-resolved, yellow for partial,
+   red for regression, grey for neutral.
+
+6. Add a 4-case test that exercises each verification status against
+   fixture findings.
+
+Tell me the diff for every file, then apply. Show me a remediation
+run on a real demo-clinic-app finding with the verification output.
+```
+
+**Expected output:** structured verification field across CLI +
+dashboard, badge UI, tests, ~$1.50-$2.50 Bobcoin spend. Save as
+`bob_sessions/verify-remediation-loop.{md,png}`.
+
+**Why it matters:** "the agent verifies its own work" is the single most
+impressive sentence a judge can hear. This makes the claim true.
+
+---
+
+## 12 · `live-hipaa-audit` — Bob narrates the audit live
+
+**Mode:** **`hipaa-auditor` custom mode** (the one defined in
+`.bob/custom_modes.yaml`).
+
+**Why this one matters:** every other Bob session in `bob_sessions/`
+shows *Bob writing code*. This one shows *Bob doing the compliance
+work* — which is the actual product claim. It's also short, cheap,
+and produces evidence judges can screenshot for the video.
+
+**Paste:**
+
+```
+Run as the hipaa-auditor custom mode. Audit @demo-clinic-app
+end-to-end against every HIPAA Security Rule control defined in
+@packages/cli/src/frameworks/hipaa.ts.
+
+For each finding you produce, follow the auditor schema exactly:
+{
+  control_id, file, line_start, line_end, severity, explanation,
+  evidence_snippet
+}
+
+After the JSON findings list, add a 200-word "Auditor's overall
+assessment" section as if writing the executive summary of a real
+HIPAA audit:
+- Is this codebase auditable today?
+- What's the highest-priority remediation that would change that?
+- Which two controls were the hardest to evaluate from source
+  alone and would require interview/documentation evidence in a
+  real audit?
+
+This export is the strongest single piece of evidence that Bob,
+loaded with the Sentinel custom modes, IS the compliance auditor
+the pitch describes. Keep it tight — quality over volume.
+```
+
+**Expected output:** structured findings + an executive summary,
+~$0.30-$0.60 Bobcoin spend. Save as
+`bob_sessions/live-hipaa-audit.{md,png}`.
+
+**Why it matters:** the demo video's most credible 15 seconds is
+"watch Bob actually audit a codebase" — and this is the export that
+proves it happened in Bob IDE, not in a generic chat.
+
+---
+
+## After all twelve tasks
+
+1. Run `npm test` and `npm run build` — confirm nothing the new
+   sessions added regresses the build.
+2. Verify each new `bob_sessions/*.md` is paired with a `.png`
+   consumption-summary screenshot.
 3. Stage every Bob-edited file plus `bob_sessions/`, commit, push.
-4. Write the final commit message as:
-
-   ```
-   Add Bob IDE task session exports + Bob-generated changes
-
-   Six task sessions in bob_sessions/ document the Bob IDE work that
-   produced the changes in this commit:
-     - audit-hipaa-demo-clinic    : ran the hipaa-auditor custom mode
-     - add-164-310-control        : added a 16th HIPAA control end-to-end
-     - tests-findings-store       : generated the unit-test suite
-     - refactor-bob-runner-dirty  : fixed the dirty-tree no-op bug
-     - controls-catalog-review    : reviewed the control catalog
-     - generate-control-docs      : authored per-control reference docs
-   ```
+4. Update `docs/SUBMISSION.md`, `README.md`, and `docs/PITCH_DECK.md`
+   to reflect the new total (12 sessions, expected ~$17 spend, ~42%
+   of the 40-Bobcoin allocation).
 
 ## Credential hygiene reminder
 

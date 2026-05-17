@@ -1,8 +1,47 @@
 import { loadSnapshot, loadRemediations } from "../../lib/data";
 import { EmptyState } from "../../components/EmptyState";
-import { GitPullRequest, GitBranch } from "lucide-react";
+import { GitPullRequest, GitBranch, CheckCircle2, AlertTriangle, XCircle, MinusCircle } from "lucide-react";
 
 export const dynamic = "force-dynamic";
+
+function VerificationBadge({ verification }: { verification: any }) {
+  if (!verification || !verification.status) return null;
+
+  const badges = {
+    "verified-resolved": {
+      icon: CheckCircle2,
+      text: "Verified",
+      className: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    },
+    partial: {
+      icon: AlertTriangle,
+      text: `Partial (${verification.new_high_severity_count} new high-severity)`,
+      className: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+    },
+    regression: {
+      icon: XCircle,
+      text: "Regression",
+      className: "bg-red-500/10 text-red-400 border-red-500/20",
+    },
+    neutral: {
+      icon: MinusCircle,
+      text: "Neutral",
+      className: "bg-slate-500/10 text-slate-400 border-slate-500/20",
+    },
+  };
+
+  const badge = badges[verification.status as keyof typeof badges];
+  if (!badge) return null;
+
+  const Icon = badge.icon;
+
+  return (
+    <span className={`px-2 py-0.5 text-xs font-medium rounded-full border flex items-center gap-1 ${badge.className}`}>
+      <Icon className="w-3 h-3" />
+      {badge.text}
+    </span>
+  );
+}
 
 export default function PrsPage() {
   const snap = loadSnapshot();
@@ -35,6 +74,7 @@ export default function PrsPage() {
                           {finding.control}
                         </span>
                       )}
+                      <VerificationBadge verification={pr.verification} />
                       {pr.status && pr.status !== "applied" && (
                         <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
                           {pr.status === "applied:working-tree-only" && "Working tree only"}

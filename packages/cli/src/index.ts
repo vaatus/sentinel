@@ -4,6 +4,7 @@ import { runScan } from "./commands/scan.js";
 import { runRemediate } from "./commands/remediate.js";
 import { runDashboard } from "./commands/dashboard.js";
 import { runInit } from "./commands/init.js";
+import { runWatch } from "./commands/watch.js";
 import type { Framework } from "./types.js";
 
 const program = new Command();
@@ -16,12 +17,12 @@ program
 program
   .command("scan")
   .description("Scan a repository against a compliance framework")
-  .option("-f, --framework <framework>", "hipaa | soc2 | pci", "hipaa")
+  .option("-f, --framework <framework>", "hipaa | soc2 | pci | gdpr", "hipaa")
   .option("-p, --path <path>", "target repo path", process.cwd())
   .option("--json", "output JSON only (no pretty progress)", false)
   .action(async (opts) => {
     const framework = opts.framework as Framework;
-    if (!["hipaa", "soc2", "pci"].includes(framework)) {
+    if (!["hipaa", "soc2", "pci", "gdpr"].includes(framework)) {
       console.error(`Unknown framework: ${framework}`);
       process.exit(1);
     }
@@ -61,6 +62,27 @@ program
   .option("-p, --path <path>", "target repo path", process.cwd())
   .action(async (opts) => {
     await runInit({ path: opts.path });
+  });
+
+program
+  .command("watch")
+  .description("Scan only changed files in a git diff (agentic CI mode)")
+  .option("-f, --framework <framework>", "hipaa | soc2 | pci | gdpr", "hipaa")
+  .option("-p, --path <path>", "target repo path", process.cwd())
+  .option("-b, --base <ref>", "git ref to diff against", "origin/main")
+  .option("--format <format>", "json | github-actions | markdown", "json")
+  .action(async (opts) => {
+    const framework = opts.framework as Framework;
+    if (!["hipaa", "soc2", "pci", "gdpr"].includes(framework)) {
+      console.error(`Unknown framework: ${framework}`);
+      process.exit(1);
+    }
+    const format = opts.format as "json" | "github-actions" | "markdown";
+    if (!["json", "github-actions", "markdown"].includes(format)) {
+      console.error(`Unknown format: ${format}`);
+      process.exit(1);
+    }
+    await runWatch({ framework, path: opts.path, base: opts.base, format });
   });
 
 program.parseAsync(process.argv).catch((e) => {

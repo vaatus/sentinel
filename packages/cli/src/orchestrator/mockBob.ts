@@ -198,10 +198,30 @@ const PCI_EXPLAIN: Record<string, (m: Match) => { explanation: string; hint: str
   }),
 };
 
+const GDPR_EXPLAIN: Record<string, (m: Match) => { explanation: string; hint: string }> = {
+  "Art32(1)(a)": (m) => ({
+    explanation: `Database column at ${m.file}:${m.line} stores personal data in plaintext with no encryption or pseudonymisation annotation.`,
+    hint: "Apply encryption-at-rest or pseudonymisation techniques (e.g., tokenization, hashing) before persisting personal data per GDPR Article 32(1)(a).",
+  }),
+  "Art32(1)(b)": (m) => ({
+    explanation: `Route handler at ${m.file}:${m.line} serves personal data without authentication middleware. Any unauthenticated client can access personal data.`,
+    hint: "Wrap this route with authentication middleware to ensure confidentiality per GDPR Article 32(1)(b).",
+  }),
+  "Art32(1)(d)": (m) => ({
+    explanation: `${m.file}:${m.line} handles personal data but the codebase lacks evidence of regular security testing or evaluation.`,
+    hint: "Add security testing annotations and implement regular assessment procedures per GDPR Article 32(1)(d).",
+  }),
+  "Art33": (m) => ({
+    explanation: `Logging statement at ${m.file}:${m.line} emits personal data directly into the application log. Standard log sinks lack proper breach detection and notification mechanisms required by GDPR Article 33.`,
+    hint: "Replace personal data values with opaque identifiers and route security events through a dedicated security logging system with breach detection capabilities.",
+  }),
+};
+
 function explain(framework: Framework, m: Match): { explanation: string; hint: string } {
   if (framework === "hipaa" && EXPLANATIONS[m.controlId]) return EXPLANATIONS[m.controlId](m);
   if (framework === "soc2" && SOC2_EXPLAIN[m.controlId]) return SOC2_EXPLAIN[m.controlId](m);
   if (framework === "pci" && PCI_EXPLAIN[m.controlId]) return PCI_EXPLAIN[m.controlId](m);
+  if (framework === "gdpr" && GDPR_EXPLAIN[m.controlId]) return GDPR_EXPLAIN[m.controlId](m);
   return {
     explanation: `Potential ${m.controlId} violation at ${m.file}:${m.line}.`,
     hint: "Review and remediate per the relevant control.",

@@ -67,7 +67,7 @@ footer: "Sentinel · IBM Bob Hackathon · May 2026"
 
 ## Compliance-as-CI for healthcare and fintech
 
-> The **Bob-powered agent** that scans every pull request and **blocks merges** that ship a HIPAA / SOC 2 / PCI violation.
+> The **Bob-powered agent** that scans every pull request and **blocks merges** that ship a HIPAA / SOC 2 / PCI / GDPR violation.
 
 <br>
 
@@ -143,16 +143,18 @@ Compliance is *periodic*. A quarterly audit. A release-gate scan. By the time a 
 
 | Bob IDE task | Output | Cost |
 |---|---|---|
-| Audit run via `hipaa-auditor` mode | JSON findings + auditor notes | $0.10 |
-| Add §164.310 control end-to-end | 4 files changed, demo violation seeded | $1.49 |
-| Generate test suite | 679 LOC, 30 tests, 30 passing | $0.39 |
-| Refactor dirty-tree no-op | Structured status across CLI + dashboard | $1.09 |
-| Code-review catalog | False-positive / false-negative analysis | $0.07 |
-| Generate per-control docs | **26 markdown pages** in `docs/controls/` | $2.92 |
-| | **Total: $6.06 / 40 Bobcoins** | |
+| Audit run via `hipaa-auditor` mode | JSON findings + auditor notes | $0.17 |
+| Add §164.310 control end-to-end | 4 files changed, demo violation seeded | $1.60 |
+| Generate test suite | 679 LOC, 33 tests, 33 passing | $0.46 |
+| Refactor dirty-tree no-op | Structured status across CLI + dashboard | $1.18 |
+| Code-review catalog | False-positive / false-negative analysis | $0.13 |
+| Generate per-control docs | **26 markdown pages** in `docs/controls/` | $3.06 |
+| **Build `sentinel watch` agent** | **Diff-scoped scanner powering the PR-check workflow** | **$2.52** |
+| **Stub GDPR (4th framework)** | **4 controls + docs — proves regime-agnostic** | **$3.26** |
+| | **Total: $12.39 / 40 Bobcoins** | |
 
 <div class="small">
-All six task histories + consumption summaries in <code>bob_sessions/</code>.
+All eight task histories + consumption summaries in <code>bob_sessions/</code>.
 </div>
 
 ---
