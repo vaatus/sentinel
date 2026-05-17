@@ -13,10 +13,6 @@
 </p>
 
 
-<p align="center">
-  <img src="./docs/PITCH_DECK_slide-1-title.png" alt="Sentinel pitch — title slide" width="720">
-</p>
-
 ```
   ┌──────────────────────────────────────────────────────────────┐
   │   SENTINEL — Compliance Engineering Copilot                  │
@@ -39,10 +35,9 @@
 ```
 
 <p align="center">
-  <a href="./docs/PITCH_DECK.pdf">📊 8-slide pitch deck</a>
+  <a href="https://vaatus.github.io/sentinel/">🌐 Live demo</a>
   · <a href="./bob_sessions/">🤖 Bob IDE task sessions</a>
   · <a href="./docs/controls/">📚 30 compliance controls reference</a>
-  · <a href="./docs/DEMO_SCRIPT.md">🎬 2-min demo script</a>
 </p>
 
 > **Submitted to the IBM Bob Hackathon (May 15–17, 2026).** Exported Bob IDE task session reports are in [`bob_sessions/`](./bob_sessions); the modes that drove them are in [`.bob/custom_modes.yaml`](./.bob/custom_modes.yaml).
@@ -57,7 +52,7 @@ If you have 30 seconds:
 
 If you have 5 minutes:
 
-4. Read the [pitch deck](./docs/PITCH_DECK.pdf) (8 slides, 1 minute).
+4. Open the [live demo](https://vaatus.github.io/sentinel/) — the dashboard pre-populated with a real HIPAA scan of `demo-clinic-app/`.
 5. Run `npm install && npm run demo` — produces a real scan + remediation cycle in mock mode (no API key needed).
 6. Compare the Bob IDE session [`bob_task_may-16-2026_4-25-09-pm.md`](./bob_sessions) with the code in [`packages/cli/src/frameworks/hipaa.ts`](./packages/cli/src/frameworks/hipaa.ts) — Bob designed the 16th HIPAA control end-to-end and that diff is the strongest single piece of evidence for "meaningful use of Bob".
 
