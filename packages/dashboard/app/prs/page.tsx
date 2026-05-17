@@ -2,7 +2,7 @@ import { loadSnapshot, loadRemediations } from "../../lib/data";
 import { EmptyState } from "../../components/EmptyState";
 import { GitPullRequest, GitBranch, CheckCircle2, AlertTriangle, XCircle, MinusCircle } from "lucide-react";
 
-export const dynamic = "force-dynamic";
+export const dynamic = process.env.NEXT_OUTPUT_EXPORT === "true" ? "force-static" : "force-dynamic";
 
 function VerificationBadge({ verification }: { verification: any }) {
   if (!verification || !verification.status) return null;

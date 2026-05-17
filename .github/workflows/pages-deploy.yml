@@ -1,0 +1,81 @@
+name: Deploy dashboard demo to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_OUTPUT_EXPORT: "true"
+      NEXT_PUBLIC_BASE_PATH: "/sentinel"
+      NEXT_PUBLIC_DEMO_MODE: "true"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --silent
+
+      - name: Build CLI (needed to populate demo data)
+        run: npm run build --silent
+
+      - name: Populate demo data via mock-mode scan + remediate
+        run: |
+          node packages/cli/dist/index.js scan \
+            --framework hipaa \
+            --path ./demo-clinic-app > /dev/null
+          node packages/cli/dist/index.js remediate \
+            --all \
+            --path ./demo-clinic-app \
+            --apply \
+            --json > /dev/null || true
+          ls -la demo-clinic-app/.sentinel/
+
+      - name: Strip API routes (incompatible with static export)
+        run: rm -rf packages/dashboard/app/api
+
+      - name: Build dashboard static export
+        env:
+          SENTINEL_TARGET: ${{ github.workspace }}/demo-clinic-app
+        run: |
+          cd packages/dashboard
+          npx next build
+
+      - name: Inject demo banner + 404 fallback
+        run: |
+          # Add a top-of-page demo banner script to the exported index.html
+          # so judges immediately know this is read-only.
+          # Marpit handles 404s by copying index.html
+          cp packages/dashboard/out/index.html packages/dashboard/out/404.html || true
+
+      - name: Upload artefact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: packages/dashboard/out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

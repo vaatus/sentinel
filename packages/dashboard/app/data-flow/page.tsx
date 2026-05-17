@@ -2,7 +2,7 @@ import { loadSnapshot } from "../../lib/data";
 import { DataFlowGraph } from "../../components/DataFlowGraph";
 import { EmptyState } from "../../components/EmptyState";
 
-export const dynamic = "force-dynamic";
+export const dynamic = process.env.NEXT_OUTPUT_EXPORT === "true" ? "force-static" : "force-dynamic";
 
 export default function DataFlowPage() {
   const snap = loadSnapshot();

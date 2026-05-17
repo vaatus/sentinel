@@ -1,7 +1,7 @@
 import { loadSnapshot } from "../../lib/data";
 import { Activity } from "lucide-react";
 
-export const dynamic = "force-dynamic";
+export const dynamic = process.env.NEXT_OUTPUT_EXPORT === "true" ? "force-static" : "force-dynamic";
 
 const MODES = [
   {

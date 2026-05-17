@@ -2,7 +2,15 @@ import Link from "next/link";
 import { ArrowLeft, FileCode, AlertTriangle, GitPullRequest } from "lucide-react";
 import { loadSnapshot, severityColor } from "../../../lib/data";
 
-export const dynamic = "force-dynamic";
+export const dynamic = process.env.NEXT_OUTPUT_EXPORT === "true" ? "force-static" : "force-dynamic";
+
+// Required for static export of a dynamic route — pre-generate one
+// page per finding from the snapshot at build time.
+export function generateStaticParams() {
+  if (process.env.NEXT_OUTPUT_EXPORT !== "true") return [];
+  const snap = loadSnapshot();
+  return snap.findings.map((f) => ({ id: encodeURIComponent(f.id) }));
+}
 
 export default function FindingDetailPage({ params }: { params: { id: string } }) {
   const snap = loadSnapshot();

@@ -7,7 +7,7 @@ import { RescanButton } from "../components/RescanButton";
 import { EmptyState } from "../components/EmptyState";
 import { Sparkles } from "lucide-react";
 
-export const dynamic = "force-dynamic";
+export const dynamic = process.env.NEXT_OUTPUT_EXPORT === "true" ? "force-static" : "force-dynamic";
 
 export default function OverviewPage() {
   const snap = loadSnapshot();
