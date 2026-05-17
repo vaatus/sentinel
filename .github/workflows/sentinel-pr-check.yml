@@ -84,12 +84,16 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          # Use watch mode with markdown format to generate the PR comment
+          # Use watch mode with markdown format to generate the PR comment.
+          # Strip the watch banner (everything before <!-- sentinel-watch-comment -->)
+          # so the PR comment renders clean.
           node packages/cli/dist/index.js watch \
             --framework "$COMPLIANCE_FRAMEWORK" \
             --path . \
             --base "origin/${{ github.base_ref }}" \
-            --format markdown > comment.md
+            --format markdown \
+            | awk '/<!-- sentinel-watch-comment -->/{flag=1} flag' \
+            > comment.md
           
           # Smuggle the multi-line body through GITHUB_OUTPUT.
           {
