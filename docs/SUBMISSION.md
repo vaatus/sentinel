@@ -65,7 +65,8 @@ Compliance stops being an event. It becomes a habit.
 ```
 Bob IDE was the mandatory development partner — receipts in bob_sessions/.
 
-Eight task sessions, $12.39 of Bobcoin spend, eight visible code outcomes:
+Twelve task sessions, $18.72 of Bobcoin spend (~47% of the 40-Bobcoin
+hackathon allocation), twelve visible code outcomes:
 
 - audit run via hipaa-auditor mode: produced structured JSON findings on
   demo-clinic-app + auditor notes ($0.17)
@@ -85,6 +86,20 @@ Eight task sessions, $12.39 of Bobcoin spend, eight visible code outcomes:
   GitHub Actions PR-check workflow ($2.52)
 - stubbed GDPR Article 32 as a 4th compliance framework (4 controls + 4
   per-control docs) to prove the architecture is regime-agnostic ($3.26)
+- replaced the stub `init` with a real interactive `@inquirer/prompts`
+  wizard (350 LOC + 170 LOC of tests) that drops .bob/, the workflow,
+  and config into any repo idempotently ($1.11)
+- seeded 5 multi-framework violations into demo-clinic-app so SOC 2,
+  PCI, and GDPR scans now return real findings (every framework scan
+  is alive in the demo, not just HIPAA) ($1.38)
+- built the closed-loop verification step: after each remediation,
+  re-audit the patched files and label the result verified-resolved /
+  partial / regression / neutral — surfaced in CLI output + dashboard
+  badges ($3.61)
+- ran the hipaa-auditor *custom mode* (not Code mode) end-to-end on
+  demo-clinic-app and produced a structured findings list + 200-word
+  auditor's executive summary — the single strongest "Bob does
+  compliance work" artifact in the repo ($0.23)
 
 Each task is preserved in bob_sessions/ as an exported markdown transcript
 with the consumption summary screenshot beside it. Every file edited in this

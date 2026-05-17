@@ -143,18 +143,17 @@ Compliance is *periodic*. A quarterly audit. A release-gate scan. By the time a 
 
 | Bob IDE task | Output | Cost |
 |---|---|---|
-| Audit run via `hipaa-auditor` mode | JSON findings + auditor notes | $0.17 |
-| Add §164.310 control end-to-end | 4 files changed, demo violation seeded | $1.60 |
-| Generate test suite | 679 LOC, 33 tests, 33 passing | $0.46 |
-| Refactor dirty-tree no-op | Structured status across CLI + dashboard | $1.18 |
-| Code-review catalog | False-positive / false-negative analysis | $0.13 |
-| Generate per-control docs | **26 markdown pages** in `docs/controls/` | $3.06 |
-| **Build `sentinel watch` agent** | **Diff-scoped scanner powering the PR-check workflow** | **$2.52** |
-| **Stub GDPR (4th framework)** | **4 controls + docs — proves regime-agnostic** | **$3.26** |
-| | **Total: $12.39 / 40 Bobcoins** | |
+| Audit + §164.310 control + tests + dirty-tree fix + review + 26 docs | First 6 sessions, established the codebase | $6.62 |
+| Build `sentinel watch` agent | Diff-scoped scanner powering PR-check workflow | $2.52 |
+| Stub GDPR (4th framework) | 4 controls + docs — proves regime-agnostic | $3.26 |
+| **Build `sentinel init` wizard** | **Interactive bootstrapper — "10 min install" made literal** | **$1.11** |
+| **Seed multi-framework violations** | **All 4 framework scans now return real findings** | **$1.38** |
+| **Build closed-loop verification** | **Re-audit after fix — verified-resolved / regression badges** | **$3.61** |
+| **Live `hipaa-auditor` custom mode** | **Structured audit + executive summary — Bob doing the work** | **$0.23** |
+| | **Total: $18.72 / 40 Bobcoins (~47%)** | |
 
 <div class="small">
-All eight task histories + consumption summaries in <code>bob_sessions/</code>.
+All twelve task histories + consumption summaries in <code>bob_sessions/</code>.
 </div>
 
 ---

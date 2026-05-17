@@ -52,7 +52,7 @@
 If you have 30 seconds:
 
 1. Watch the GIF above.
-2. Skim [`bob_sessions/`](./bob_sessions) — eight exported Bob IDE task histories that produced real code in this repo ($12.39 of Bobcoin spend, every file edit traceable to a task ID).
+2. Skim [`bob_sessions/`](./bob_sessions) — twelve exported Bob IDE task histories that produced real code in this repo ($18.72 of Bobcoin spend, every file edit traceable to a task ID).
 3. Open [`.bob/custom_modes.yaml`](./.bob/custom_modes.yaml) — five compliance auditor modes you can load straight into your own Bob IDE on this repo and run `/audit-hipaa` yourself.
 
 If you have 5 minutes:
@@ -106,14 +106,19 @@ Per the hackathon brief, Bob IDE is the **mandatory development partner**, not j
 | [`generate docs`](./bob_sessions) | Produced 26 per-control reference pages in `docs/controls/` plus an index | $2.92 |
 | [`build watch agent`](./bob_sessions) | Designed + built `sentinel watch` — diff-scoped agentic scan with 3 output formats (json / github-actions / markdown) + 3 new tests | $2.52 |
 | [`stub GDPR framework`](./bob_sessions) | Added GDPR Article 32 as 4th compliance framework (4 controls + 4 per-control docs); proves the architecture is regime-agnostic | $3.26 |
-| **Total** | | **$12.39 / 40 Bobcoins** |
+| [`build init wizard`](./bob_sessions) | Replaced stub `init` with a real interactive `@inquirer/prompts` bootstrapper that drops `.bob/`, workflow, config into any repo (350 LOC + 170 LOC tests) | $1.11 |
+| [`seed multi-framework violations`](./bob_sessions) | Added 5 deliberate violations across SOC 2, PCI, GDPR in `demo-clinic-app` so every framework scan returns real findings | $1.38 |
+| [`build verification loop`](./bob_sessions) | After each remediation, re-audits the patched files and labels result `verified-resolved`/`partial`/`regression`/`neutral` — closes the agentic loop | $3.61 |
+| [`live hipaa-auditor mode`](./bob_sessions) | Ran the `hipaa-auditor` **custom mode** end-to-end on `demo-clinic-app` and emitted a structured findings list + 200-word auditor's executive summary | $0.23 |
+| **Total** | | **$18.72 / 40 Bobcoins** |
 
 ## What this gets you
 
-- **CLI** — `sentinel scan --framework {hipaa,soc2,pci} --path .` returns prioritised findings + a 0–100 compliance score.
+- **One-command install** — `sentinel init` runs an interactive wizard (`@inquirer/prompts`) that drops `.bob/custom_modes.yaml`, `.github/workflows/sentinel-pr-check.yml`, and `.sentinel/config.json` into any repo. Idempotent with diff previews before overwrite.
+- **CLI** — `sentinel scan --framework {hipaa,soc2,pci,gdpr} --path .` returns prioritised findings + a 0–100 compliance score.
 - **Watch mode** — `sentinel watch --format {json,github-actions,markdown}` scans only changed files in a git diff for agentic CI integration.
-- **Dashboard** — `sentinel dashboard` opens a Next.js UI showing the score, findings detail, PHI data-flow graph, and remediation PRs.
-- **Auto-remediation** — `sentinel remediate --all` generates diff patches with blast-radius analysis, applies them on disposable `sentinel/fix-*` branches.
+- **Dashboard** — `sentinel dashboard` opens a Next.js UI showing the score, findings detail, PHI data-flow graph, and remediation PRs with per-fix verification badges.
+- **Auto-remediation with closed-loop verification** — `sentinel remediate --all` generates diff patches with blast-radius analysis, applies them on disposable `sentinel/fix-*` branches, **then re-audits the patched files** to confirm the violation is actually resolved. Each fix is labelled `verified-resolved`, `partial`, `regression`, or `neutral`.
 - **Bob IDE modes** — five custom modes (`hipaa-auditor`, `soc2-auditor`, `pci-auditor`, `phi-tracer`, `remediation-engineer`) that load directly into Bob IDE.
 
 **Engine details:** the runtime LLM is Claude `claude-opus-4-7` (with adaptive thinking and prompt caching on the controls catalog); a local Bob Shell binary is a drop-in via `BOB_LIVE=1 SENTINEL_BOB_BIN=bob`. With neither configured, the deterministic mock runner still produces meaningful findings so the demo runs anywhere.

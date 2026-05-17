@@ -24,25 +24,21 @@ async function verifyRemediation(args: {
 }): Promise<VerificationResult> {
   const git = simpleGit(args.repoRoot);
   const isRepo = await git.checkIsRepo().catch(() => false);
-  
-  if (!isRepo) {
-    // Can't verify without git - assume neutral
-    return {
-      status: "neutral",
-      new_findings: [],
-      original_finding_present: false,
-      new_high_severity_count: 0,
-    };
-  }
+
+  // If the target isn't a git repo (or the patch was applied directly to the
+  // working tree without a branch checkout), the patched files already live
+  // at args.repoRoot — we can re-audit them in place. We only need the
+  // branch-checkout dance for real git remediations.
+  const workingTreeOnly = !isRepo || args.branch === "working-tree";
 
   try {
-    // Get current branch to restore later
-    const status = await git.status();
-    const currentBranch = status.current ?? "main";
-    
-    // Checkout the fix branch
-    await git.checkout(args.branch);
-    
+    let currentBranch = "main";
+    if (!workingTreeOnly) {
+      const status = await git.status();
+      currentBranch = status.current ?? "main";
+      await git.checkout(args.branch);
+    }
+
     // Re-run audit on just the patched files
     const auditPrompt = buildAuditPrompt(args.finding.framework, args.patchedFiles);
     const audit = await runAudit({
@@ -51,9 +47,10 @@ async function verifyRemediation(args: {
       files: args.patchedFiles,
       prompt: auditPrompt,
     });
-    
-    // Restore original branch
-    await git.checkout(currentBranch);
+
+    if (!workingTreeOnly) {
+      await git.checkout(currentBranch);
+    }
     
     // Analyze the new findings
     const newFindings = audit.json.findings;
@@ -91,6 +88,9 @@ async function verifyRemediation(args: {
     };
   } catch (error) {
     // If verification fails, return neutral status
+    if (process.env.SENTINEL_DEBUG) {
+      console.error("[verify] error:", (error as Error).message);
+    }
     return {
       status: "neutral",
       new_findings: [],
@@ -156,15 +156,25 @@ export async function runRemediate(opts: RemediateOptions): Promise<void> {
         applyToWorkingTree: opts.apply,
       });
 
-      // Run verification if we successfully created a branch
+      // Run verification whenever the patch actually landed on disk —
+      // either on a real fix branch ("applied") or directly on the
+      // working tree (the path the demo + non-git targets take).
       let verification: VerificationResult | undefined;
-      if (pr.status === "applied" && pr.filesChanged.length > 0) {
+      const patchLanded =
+        pr.status === "applied" || pr.status === "applied:working-tree-only";
+      if (patchLanded && pr.filesChanged.length > 0) {
         if (spin) {
           spin.text = `${f.severity.padEnd(8)} ${f.control}  ${f.file}:${f.line_start} - verifying fix...`;
         }
         verification = await verifyRemediation({
           repoRoot: target,
-          branch: pr.branch,
+          // When the patch only landed on the working tree (no real fix
+          // branch was committed), tell the verifier to skip the
+          // checkout dance and audit the files in place.
+          branch:
+            pr.status === "applied:working-tree-only"
+              ? "working-tree"
+              : pr.branch,
           finding: f,
           patchedFiles: pr.filesChanged,
         });
